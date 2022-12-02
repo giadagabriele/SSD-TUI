@@ -1,19 +1,8 @@
 import pytest
 from valid8 import ValidationError
 
-from dress_loan.domain import Name, Price, \
-    Username, Email, Password, Brand, Material, Color, Size
-
-
-def test_name_format():
-    wrong_values = ['', 'APP%LE', '<script>alert()</script>', 'Ciao /90 30', 'A' * 26]
-    for value in wrong_values:
-        with pytest.raises(ValidationError):
-            Name(value)
-
-    correct_values = ['S9 PLUS', 'REDMI NOTE 8 Pro', 'A' * 25]
-    for value in correct_values:
-        assert Name(value).value == value
+from dress_loan.domain import Price, \
+    Username, Email, Password, Brand, Material, Color, Size, Date, Number
 
 
 def test_price_no_init():
@@ -59,6 +48,7 @@ def test_username_format():
     correct_values = ['Momo1996', 'Momohassan', 'A' * 25]
     for value in correct_values:
         assert Username(value).value == value
+        assert Username(value).__str__() == value
 
 
 def test_email_format():
@@ -72,6 +62,7 @@ def test_email_format():
                       'A' * 20 + '@' + 'a.it']
     for value in correct_values:
         assert Email(value).value == value
+        assert Email(value).__str__() == value
 
 
 def test_password_format():
@@ -84,6 +75,7 @@ def test_password_format():
     correct_values = ['Momohassan17?', 'A' * 25, 'A' * 8]
     for value in correct_values:
         assert Password(value).value == value
+        assert Password(value).__str__() == value
 
 
 def test_brand_format():
@@ -95,6 +87,7 @@ def test_brand_format():
     correct_values = ['GUCCI', 'VALENTINO', 'ARMANI']
     for value in correct_values:
         assert Brand(value).value == value
+        assert Brand(value).__str__() == value
 
 
 def test_material_format():
@@ -106,6 +99,7 @@ def test_material_format():
     correct_values = ['WOOL', 'SILK', 'COTTON']
     for value in correct_values:
         assert Material(value).value == value
+        assert Material(value).__str__() == value
 
 
 def test_color_format():
@@ -117,6 +111,7 @@ def test_color_format():
     correct_values = ['BLACK', 'BLUE', 'GRAY']
     for value in correct_values:
         assert Color(value).value == value
+        assert Color(value).__str__() == value
 
 
 def test_size_format():
@@ -128,3 +123,26 @@ def test_size_format():
     correct_values = [38, 50, 60]
     for value in correct_values:
         assert Size(value).value == value
+        assert Size(value).__int__() == value
+
+
+def test_date_format():
+    wrong_values = ['22/11/1996', '1996/22/11', '1996-022-11', '']
+    for value in wrong_values:
+        with pytest.raises(ValidationError):
+            Date(str(value))
+
+    correct_values = ['1996-11-22', '2000-05-07']
+    for value in correct_values:
+        assert Date(value).value == value
+        assert Date(value).__str__() == value
+
+
+def test_num_cannot_be_negative_or_zero():
+    wrong_values = [-2, 0]
+    for value in wrong_values:
+        with pytest.raises(ValidationError):
+            Number.create(str(value))
+    correct_values = [1, 150]
+    for value in correct_values:
+        assert Number(value).__int__() == value

@@ -8,20 +8,6 @@ from valid8 import ValidationError
 from validation.dataclasses import validate_dataclass
 from validation.regex import pattern
 
-
-@typechecked
-@dataclass(frozen=True, order=True)
-class Name:
-    value: str
-
-    def __post_init__(self):
-        validate_dataclass(self)
-        validate('value', self.value, min_len=5, max_len=25, custom=pattern(r'[A-Za-z0-9 \-\_]+'))
-
-    def __str__(self):
-        return self.value
-
-
 @typechecked
 @dataclass(frozen=True, order=True)
 class Number:
@@ -177,3 +163,16 @@ class Size:
     @staticmethod
     def create(num: str) -> 'Size':
         return Size(int(num))
+
+
+@typechecked
+@dataclass(frozen=True, order=True)
+class Date:
+    value: str
+
+    def __post_init__(self):
+        validate_dataclass(self)
+        validate('value', self.value, custom=pattern(r'^\d{4}-([012][0-9])-([012][0-9]|30|31)$'))
+
+    def __str__(self):
+        return str(self.value)
