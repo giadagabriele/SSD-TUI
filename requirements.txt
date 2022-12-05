@@ -1,0 +1,12 @@
+certifi==2022.9.24
+charset-normalizer==2.1.1
+dataclass-type-validator==0.1.2
+dataclasses==0.6
+decopatch==1.4.10
+idna==3.4
+makefun==1.15.0
+requests==2.28.1
+six==1.16.0
+typeguard==2.13.3
+urllib3==1.26.13
+valid8==5.1.2
