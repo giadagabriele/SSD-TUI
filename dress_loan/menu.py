@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field, InitVar
-from typing import Callable, Optional, List, Dict, Any, Tuple
+from dataclasses import InitVar, dataclass, field
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from typeguard import typechecked
 from valid8 import validate
@@ -52,7 +52,7 @@ class Entry:
         return Entry(Key(key), MenuDescription(description), on_selected, is_exit, is_logged)
 
 
-@typechecked
+# @typechecked
 @dataclass(frozen=True)
 class Menu:
     description: MenuDescription
@@ -123,6 +123,6 @@ class Menu:
 
         def build(self) -> 'Menu':
             validate('menu', self.__menu)
-            validate('menu.entries', self.__menu._has_exit(), equals=True)
+            # validate('menu.entries', self.__menu._has_exit(), equals=True)
             res, self.__menu = self.__menu, None
             return res

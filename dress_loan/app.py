@@ -1,19 +1,18 @@
-from getpass import getpass
-from wsgiref import headers
-
 import csv
 import sys
+from getpass import getpass
 from pathlib import Path
-from typing import Tuple, Callable, Any
+from typing import Any, Callable, Tuple
+from wsgiref import headers
+
 import requests
+from .menu import Entry, Menu, MenuDescription
+from valid8 import ValidationError, validate
 
-from valid8 import validate, ValidationError
+from .domain import DressShop, Email, Number, Password, Price, Username
 
-from domain import DressShop, Username, Password, Email, Price, Number
-
-from menu import Menu, MenuDescription, Entry
-
-api_server = 'https://ssd.pingflood.tk/api/v1/'
+api_server = 'https://ssd.pingflood.tk/api/v1'
+# api_server = 'https://127.0.0.1:8000/api/v1'
 
 
 class App:
@@ -76,13 +75,13 @@ class App:
             if password.value == '0':
                 return False
 
-            res = requests.post(url=f'{api_server}auth/login/', data={'username': username, 'password': password})
+            res = requests.post(url=f'{api_server}/login/', data={'username': username, 'password': password}, verify=False)
             print(res.status_code)
             if res.status_code != 200:
                 print('This user does not exist!')
             else:
-                self.__key = res.json()['key']
-                print('Login success')
+                self.__key = res.json()['access']
+                print('Login success - token', self.__key)
                 done = True
         return True
 
@@ -101,9 +100,9 @@ class App:
                 print(e)
 
 
-def main(name: str):
-    if name == '__main__':
-        App().run()
+# def main(name: str):
+#     if name == '__main__':
+#         App().run()
 
 
-main(__name__)
+# main(__name__)
