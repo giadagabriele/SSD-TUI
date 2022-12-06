@@ -9,10 +9,10 @@ import requests
 from .menu import Entry, Menu, MenuDescription
 from valid8 import ValidationError, validate
 
-from .domain import DressShop, Email, Number, Password, Price, Username
+from .domain import DressShop, Email, Number, Password, Price, Username, Description, Brand, Material, Color, Size, \
+    Dress, Id
 
 api_server = 'https://ssd.pingflood.tk/api/v1'
-# api_server = 'https://127.0.0.1:8000/api/v1'
 
 
 class App:
@@ -27,7 +27,7 @@ class App:
         self.id_user = None
         self.__commesso_menu = self.__init_commesso_menu()
         self.__client_menu = self.__init_client_menu()
-        self.__dressesList = None
+        self.__dressesList = DressShop()
 
     def init_first_menu(self) -> Menu:
         return Menu.Builder(MenuDescription('Dresses Shop '),
@@ -62,7 +62,7 @@ class App:
             except RuntimeError:
                 print('Failed to connect to the server! Try later!')
                 return
-            self.__menu.run()
+            self.__init_commesso_menu().run()
 
     def __login(self) -> bool:
         done = False
@@ -75,13 +75,13 @@ class App:
             if password.value == '0':
                 return False
 
-            res = requests.post(url=f'{api_server}/login/', data={'username': username, 'password': password}, verify=False)
-            print(res.status_code)
+            res = requests.post(url=f'{api_server}/login/', data={'username': username, 'password': password},
+                                verify=True)
             if res.status_code != 200:
                 print('This user does not exist!')
             else:
                 self.__key = res.json()['access']
-                print('Login success - token', self.__key)
+                print('Login success')
                 done = True
         return True
 
@@ -97,12 +97,39 @@ class App:
                 res = builder(line.strip())
                 return res
             except (TypeError, ValueError, ValidationError) as e:
-                print(e)
+                print('Format not satisfied')
 
+    def __fetch(self) -> None:
+        res = requests.get(url=f'{api_server}/dress/',
+                           headers={'Authorization': f'Bearer {self.__key}'}, verify=True)
 
-# def main(name: str):
-#     if name == '__main__':
-#         App().run()
+        if res.status_code != 200:
+            raise RuntimeError()
 
+        json = res.json()
+        if json is None:
+            return
+        for item in json:
+            uuid = Id(str(item['id']))
+            brand = Brand(str(item['brandType']))
+            price = Price.create(int(int(item['priceInCents']) / 100), int(item['priceInCents']) % 100)
+            material = Material(str(item['materialType']))
+            color = Color(str(item['colorType']))
+            size = Size(int(item['size']))
+            description = Description(str(item['description']))
+            dress = Dress(uuid, brand, price, material, color, size, description)
+            self.__dressesList.add_dress(dress)
 
-# main(__name__)
+    def __print_items(self) -> None:
+        if self.__dressesList.items() == 0:
+            return
+        print_sep = lambda: print('-' * 180)
+        print_sep()
+        fmt = '%-10s %-20s  %-20s  %-20s %-20s %-20s %-30s'
+        print(fmt % ('Number', 'Brand', 'Price', 'Material', 'Color', 'Size', 'Description'))
+        print_sep()
+        for index in range(self.__dressesList.items()):
+            item = self.__dressesList.item(index)
+            print(fmt % (index + 1, item.brand.value, item.price.__str__(), item.material.value,
+                         item.color.value, item.size.value, item.description.value))
+        print_sep()

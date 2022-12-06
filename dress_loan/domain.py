@@ -24,6 +24,23 @@ class Number:
     def create(num: str) -> 'Number':
         return Number(int(num))
 
+@typechecked
+@dataclass(frozen=True, order=True)
+class Id:
+    value: str
+
+    def __post_init__(self):
+        validate_dataclass(self)
+        validate('value', self.value,
+                 custom=pattern(r'^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'))
+
+    def __int__(self):
+        return self.value
+
+    @staticmethod
+    def create(uuid: str) -> 'Id':
+        return Id(int(uuid))
+
 
 @typechecked
 @dataclass(frozen=True, order=True)
@@ -195,7 +212,7 @@ class Description:
 @typechecked
 @dataclass(frozen=True, order=True)
 class Dress:
-    id: Number
+    id: Id
     brand: Brand
     price: Price
     material: Material
@@ -206,7 +223,7 @@ class Dress:
     def is_equal(self, other):
         return isinstance(other,
                           Dress) and self.brand.value == other.brand.value and other.price.value_in_cents == \
-               self.price.value_in_cents
+               self.price.value_in_cents and self.color.value == other.color.value
 
 
 @typechecked
@@ -229,7 +246,7 @@ class DressShop:
 
     def add_dress(self, dress: Dress) -> None:
         validate('items', self.items())
-        if self.there_are_duplicates(Dress):
+        if self.there_are_duplicates(dress):
             raise ValueError
         self.__items.append(dress)
 
