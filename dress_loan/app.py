@@ -58,7 +58,7 @@ class App:
             try:
                 self.__fetch()
             except ValueError as e:
-                print('Continuing with an empty list of fields...')
+                print(e)
             except RuntimeError:
                 print('Failed to connect to the server! Try later!')
                 return

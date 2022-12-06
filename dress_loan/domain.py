@@ -46,14 +46,11 @@ class Id:
 @dataclass(frozen=True, order=True)
 class Price:
     value_in_cents: int
-    create_key: InitVar[Any] = field(default=None)
 
-    __create_key = object()
     __max_value = 100000000000 - 1
     __parse_pattern = re.compile(r'(?P<euro>\d{0,11})(?:\.(?P<cents>\d{2}))?')
 
-    def __post_init__(self, create_key):
-        validate('create_key', create_key, equals=self.__create_key)
+    def __post_init__(self):
         validate_dataclass(self)
         validate('value_in_cents', self.value_in_cents, min_value=0, max_value=self.__max_value)
 
@@ -64,7 +61,7 @@ class Price:
     def create(euro: int, cents: int = 0) -> 'Price':
         validate('euro', euro, min_value=0, max_value=Price.__max_value // 100)
         validate('cents', cents, min_value=0, max_value=99)
-        return Price(euro * 100 + cents, Price.__create_key)
+        return Price(euro * 100 + cents)
 
     @staticmethod
     def parse(value: str) -> 'Price':
