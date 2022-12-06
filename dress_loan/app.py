@@ -8,9 +8,13 @@ from wsgiref import headers
 import requests
 from .menu import Entry, Menu, MenuDescription
 from valid8 import ValidationError, validate
+import jwt
+import re
 
 from .domain import DressShop, Email, Number, Password, Price, Username, Description, Brand, Material, Color, Size, \
     Dress, Id
+
+from jwt.algorithms import get_default_algorithms
 
 api_server = 'https://ssd.pingflood.tk/api/v1'
 
@@ -28,21 +32,22 @@ class App:
         self.__commesso_menu = self.__init_commesso_menu()
         self.__client_menu = self.__init_client_menu()
         self.__dressesList = DressShop()
+        get_default_algorithms()
 
     def init_first_menu(self) -> Menu:
-        return Menu.Builder(MenuDescription('Dresses Shop '),
+        return Menu.Builder(MenuDescription('Dressy'),
                             auto_select=lambda: print('Welcome please select an option!')) \
             .with_entry(Entry.create('1', 'Login', is_logged=lambda: self.__login())) \
             .with_entry(Entry.create('0', 'Exit', on_selected=lambda: print('Bye Bye!'), is_exit=True)) \
             .build()
 
     def __init_commesso_menu(self) -> Menu:
-        return Menu.Builder(MenuDescription('Welcome to our Dresses Shop App'),
+        return Menu.Builder(MenuDescription('Welcome to our Dressy App'),
                             auto_select=lambda: self.__print_items()) \
             .build()
 
     def __init_client_menu(self) -> Menu:
-        return Menu.Builder(MenuDescription('Welcome to our Dresses Shop App'),
+        return Menu.Builder(MenuDescription('Welcome to our Dressy App'),
                             auto_select=lambda: self.__print_items()) \
             .build()
 
@@ -77,13 +82,24 @@ class App:
 
             res = requests.post(url=f'{api_server}/login/', data={'username': username, 'password': password},
                                 verify=True)
+
             if res.status_code != 200:
                 print('This user does not exist!')
             else:
                 self.__key = res.json()['access']
+                print(self.decode_token_role(self.__key))
                 print('Login success')
                 done = True
         return True
+
+    def decode_token_role(self, key):
+        secret="YVEVMX6A9RcYDGWz31MKnVu6Z4loETXjS2I77AH0hbKCTRpUiwgLfcfTmt6dOZYaDtvmMxrLKKvNTFw3jQviCiX0whIoAYZrsvQoklSoTzDGFyP53WZOsWbafdAAiUa6"
+        print(jwt.decode(key, secret, algorithms=['HS512']))
+        # decoded = jwt.decode(key, secret, algorithms=['HS512'])
+        # role = re.match(r"^{'\w+'\:\s'\w+',\s'\w+'\:\s\d+,\s'\w+'\:\s\d+,\s'\w+'\:\s'\w+',\s'\w+'\:\s\d,\s'\w+'\:\s'\w+',\s'\w+'\:\s\['(\w+)'\]}", decoded)
+        # print(role.group(1))
+        # return role
+
 
     @staticmethod
     def __read(prompt: str, builder: Callable) -> Any:
