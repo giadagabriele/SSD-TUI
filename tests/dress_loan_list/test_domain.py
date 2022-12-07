@@ -5,8 +5,7 @@ from valid8 import ValidationError
 from domains.dress.domain import *
 from domains.user.domain import *
 
-from domains.dress_loan.domain import Price, \
-    Username, Email, Password, Brand, Material, Color, Size, Date
+from domains.dress_loan.domain import *
 
 
 def test_price_no_init():

@@ -12,7 +12,7 @@ import jwt
 import re
 
 from domains.dress.domain import *
-from domains.dress_shop.domain import DressShop
+from domains.dress_shop.domain import *
 from domains.user.domain import *
 
 from jwt.algorithms import get_default_algorithms
@@ -44,12 +44,12 @@ class App:
 
     def __init_commesso_menu(self) -> Menu:
         return Menu.Builder(MenuDescription('Welcome to our Dressy App'),
-                            auto_select=lambda: self.__print_items()) \
+                            auto_select=lambda: self.__print_items_commesso()) \
             .build()
 
     def __init_client_menu(self) -> Menu:
         return Menu.Builder(MenuDescription('Welcome to our Dressy App'),
-                            auto_select=lambda: self.__print_items()) \
+                            auto_select=lambda: self.__print_items_client()) \
             .build()
 
     def run(self) -> None:
@@ -61,8 +61,9 @@ class App:
 
     def __run(self) -> None:
         while not self.__first_menu.run() == (True, False):
+            #il controllo già da qui, così chiami il fetch giusto ed il menù giusto
             try:
-                self.__fetch()
+                self.__fetch_dress()
             except ValueError as e:
                 print(e)
             except RuntimeError:
@@ -116,7 +117,7 @@ class App:
             except (TypeError, ValueError, ValidationError) as e:
                 print('Format not satisfied')
 
-    def __fetch(self) -> None:
+    def __fetch_dress(self) -> None:
         res = requests.get(url=f'{api_server}/dress/',
                            headers={'Authorization': f'Bearer {self.__key}'}, verify=True)
 
@@ -138,16 +139,22 @@ class App:
             dress = Dress(uuid, brand, price, material, color, size, description, deleted)
             self.__dressesList.add_dress(dress)
 
-    def __print_items(self) -> None:
+    def __fetch_dress_loan(self) -> None:
+        pass
+
+    def __print_items_commesso(self) -> None:
         if self.__dressesList.items() == 0:
             return
         print_sep = lambda: print('-' * 180)
         print_sep()
         fmt = '%-10s %-20s  %-20s  %-20s %-20s %-20s %-30s %-10s'
-        print(fmt % ('Number', 'Brand', 'Price', 'Material', 'Color', 'Size', 'Description', 'deleted'))
+        print(fmt % ('Number', 'Brand', 'Price', 'Material', 'Color', 'Size', 'Description', 'Deleted'))
         print_sep()
         for index in range(self.__dressesList.items()):
             item = self.__dressesList.item(index)
             print(fmt % (index + 1, item.brand.value, item.price.__str__(), item.material.value,
                          item.color.value, item.size.value, item.description.value, item.deleted.value))
         print_sep()
+
+    def __print_items_client(self) -> None:
+        pass

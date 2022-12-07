@@ -77,3 +77,6 @@ class DressShop:
 
     def sort_by_price(self) -> None:
         self.__items.sort(key=lambda x: x.price)
+
+
+# qui ci deve essere anche la lista di loan da chiamare nell'init di app per utilizzarlo nelle varie print

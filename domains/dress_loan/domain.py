@@ -12,7 +12,6 @@ class DressLoanID:
         validate_dataclass(self)
         validate('value', self.value,
                  custom=pattern(r'^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$'))
-        # 070082a9-17bc-4f73-8921-3c92d03a22b4
 
     def __int__(self):
         return self.value
