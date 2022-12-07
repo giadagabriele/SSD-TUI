@@ -1,4 +1,4 @@
-from dress_loan.app import App
+from domains.dress_shop.app import *
 
 
 def main(name: str):

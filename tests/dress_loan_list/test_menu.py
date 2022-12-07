@@ -3,7 +3,7 @@ from unittest.mock import patch, call, Mock
 import pytest
 from valid8 import ValidationError
 
-from dress_loan.menu import MenuDescription, Key, Entry, Menu
+from domains.dress_loan.menu import MenuDescription, Key, Entry, Menu
 
 
 def test_menu_description_must_be_string():

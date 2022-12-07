@@ -6,13 +6,14 @@ from typing import Any, Callable, Tuple
 from wsgiref import headers
 
 import requests
-from .menu import Entry, Menu, MenuDescription
+from domains.dress_loan.menu import Entry, Menu, MenuDescription
 from valid8 import ValidationError, validate
 import jwt
 import re
 
-from .domain import DressShop, Email, Number, Password, Price, Username, Description, Brand, Material, Color, Size, \
-    Dress, Id
+from domains.dress.domain import *
+from domains.dress_shop.domain import DressShop
+from domains.user.domain import *
 
 from jwt.algorithms import get_default_algorithms
 
@@ -126,14 +127,15 @@ class App:
         if json is None:
             return
         for item in json:
-            uuid = Id(str(item['id']))
+            uuid = DressID(str(item['id']))
             brand = Brand(str(item['brandType']))
             price = Price.create(int(int(item['priceInCents']) / 100), int(item['priceInCents']) % 100)
             material = Material(str(item['materialType']))
             color = Color(str(item['colorType']))
             size = Size(int(item['size']))
             description = Description(str(item['description']))
-            dress = Dress(uuid, brand, price, material, color, size, description)
+            deleted = Deleted(bool(item['deleted']))
+            dress = Dress(uuid, brand, price, material, color, size, description, deleted)
             self.__dressesList.add_dress(dress)
 
     def __print_items(self) -> None:
@@ -141,11 +143,11 @@ class App:
             return
         print_sep = lambda: print('-' * 180)
         print_sep()
-        fmt = '%-10s %-20s  %-20s  %-20s %-20s %-20s %-30s'
-        print(fmt % ('Number', 'Brand', 'Price', 'Material', 'Color', 'Size', 'Description'))
+        fmt = '%-10s %-20s  %-20s  %-20s %-20s %-20s %-30s %-10s'
+        print(fmt % ('Number', 'Brand', 'Price', 'Material', 'Color', 'Size', 'Description', 'deleted'))
         print_sep()
         for index in range(self.__dressesList.items()):
             item = self.__dressesList.item(index)
             print(fmt % (index + 1, item.brand.value, item.price.__str__(), item.material.value,
-                         item.color.value, item.size.value, item.description.value))
+                         item.color.value, item.size.value, item.description.value, item.deleted.value))
         print_sep()
