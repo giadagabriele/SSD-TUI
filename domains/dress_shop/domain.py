@@ -9,6 +9,17 @@ import re
 
 from domains.dress.domain import *
 from domains.user.domain import *
+from domains.dress_loan.domain import *
+
+
+MIN_NUMBER = 1
+MAX_NUMBER = 1000
+MAX_DRESS_LIST_LENGTH = 10000
+MAX_DRESS_LIST_REAL_LENGTH = MAX_DRESS_LIST_LENGTH-1
+MIN_DRESS_LIST_LENGTH = 0
+MAX_DRESSLOAN_LIST_LENGTH = 100000
+MAX_DRESSLOAN_LIST_REAL_LENGTH = MAX_DRESSLOAN_LIST_LENGTH-1
+MIN_DRESSLOAN_LIST_LENGTH = 0
 
 
 @typechecked
@@ -18,7 +29,7 @@ class Number:
 
     def __post_init__(self):
         validate_dataclass(self)
-        validate('value', self.value, min_value=1, max_value=1000)
+        validate('value', self.value, min_value=MIN_NUMBER, max_value=MAX_NUMBER)
 
     def __int__(self):
         return self.value
@@ -27,53 +38,107 @@ class Number:
     def create(num: str) -> 'Number':
         return Number(int(num))
 
+
 @typechecked
 @dataclass(frozen=True)
-class DressShop:
-    __items: List[Dress] = field(default_factory=list, init=False)
+class DressLoanList: 
+    __items: List[DressLoan] = field(default_factory=list, init=False)
 
-    def items(self) -> int:
+    def length(self) -> int:
         return len(self.__items)
 
-    def get_items(self) -> List[Dress]:
+    def item(self, index: int) -> DressLoan:
+        validate('index', index, min_value=MIN_DRESSLOAN_LIST_LENGTH, max_value=MAX_DRESSLOAN_LIST_LENGTH)
+        return self.__items[index]
+    
+    def items(self) -> List[DressLoan]:
         return self.__items
 
+    def clear(self) -> None:
+        self.__items.clear()
+
+    def there_are_duplicates(self, newItem) -> bool:
+        for item in self.__items:
+            if newItem.is_equal(item):
+                return True
+        return False
+
+    def add_dressloan(self, dressLoan: DressLoan) -> None:
+        validate('items', self.length(), max_value=MAX_DRESSLOAN_LIST_LENGTH)
+        if self.there_are_duplicates(dressLoan):
+            raise ValueError
+        self.__items.append(dressLoan)
+
+    def remove_dressloan_by_index(self, index: int) -> None:
+        validate('index', index, min_value=MIN_DRESSLOAN_LIST_LENGTH, max_value=self.length()-1)
+        del self.__items[index]
+    
+    def pop_dress_by_index(self, index: int) -> None:
+        validate('index', index, min_value=MIN_DRESSLOAN_LIST_LENGTH, max_value=self.length()-1)
+        old_dress = self.__items[index]
+        del self.__items[index]
+        return old_dress
+
+    """Change price of dress in DressList[index]"""
+    def change_total_price_by_index(self, index: int, price: Price):
+        old_item = self.pop_dress_by_index(index)
+        self.__items.insert(index,
+                            Dress(old_item.id, old_item.brand.value, price, old_item.material.value,
+                            old_item.color.value, old_item.size.value, old_item.description))
+
+    def sort_by_price(self) -> None:
+        self.__items.sort(key=lambda x: x.price)
+
+
+
+@typechecked
+@dataclass(frozen=True)
+class DressList:
+    __items: List[Dress] = field(default_factory=list, init=False)
+
+    def length(self) -> int:
+        return len(self.__items)
+
     def item(self, index: int) -> Dress:
-        validate('index', index, min_value=0)
+        validate('index', index, min_value=MIN_DRESS_LIST_LENGTH, max_value=MAX_DRESS_LIST_LENGTH)
         return self.__items[index]
+    
+    def items(self) -> List[Dress]:
+        return self.__items
 
     def clear(self) -> None:
         self.__items.clear()
 
     def add_dress(self, dress: Dress) -> None:
-        validate('items', self.items())
+        validate('items', self.length(), max_value=MAX_DRESS_LIST_LENGTH)
         if self.there_are_duplicates(dress):
             raise ValueError
         self.__items.append(dress)
 
-    def there_are_duplicates(self, item) -> bool:
-        for i in self.__items:
-            if item.is_equal(i):
+    def there_are_duplicates(self, newItem) -> bool:
+        for item in self.__items:
+            if newItem.is_equal(item):
                 return True
         return False
 
-    def remove_dress(self, index: int) -> None:
-        validate('index', index, min_value=1)
-        for i in range(self.items()):
-            get_item = self.__items[i]
-            if get_item.id.value == index:
-                del self.__items[i]
-                return
+    def remove_dress_by_index(self, index: int) -> None:
+        # L'index non deve essere inferiore a 0 o superiore alla lunghezza attuale
+        validate('index', index, min_value=MIN_DRESS_LIST_LENGTH, max_value=self.length()-1)
+        del self.__items[index]
+    
+    def pop_dress_by_index(self, index: int) -> None:
+        validate('index', index, min_value=MIN_DRESS_LIST_LENGTH, max_value=self.length()-1)
+        old_dress = self.__items[index]
+        del self.__items[index]
+        return old_dress
 
-    def change_price(self, index: int, price: Price):
-        validate('index', index, min_value=0)
-        for i in range(self.items()):
-            get_item = self.__items[i]
-            if get_item.id.value == index:
-                self.remove_dress(index)
-                self.__items.insert(i,
-                                    Dress(get_item.id, get_item.brand.value, price, get_item.material.value,
-                                          get_item.color.value, get_item.size.value, get_item.description))
+    """Change price of dress in DressList[index]"""
+    def change_price_by_index(self, index: int, price: Price):
+        # Controllo di index in remove_dress
+        old_item = self.pop_dress_by_index(index)
+        self.__items.insert(index,
+                            Dress(old_item.id, old_item.brand.value, price, old_item.material.value,
+                            old_item.color.value, old_item.size.value, old_item.description))
 
     def sort_by_price(self) -> None:
         self.__items.sort(key=lambda x: x.price)

@@ -168,6 +168,7 @@ class Price:
     def add(self, other: 'Price') -> 'Price':
         return Price(self.value_in_cents + other.value_in_cents, self.__create_key)
 
+
 @typechecked
 @dataclass(frozen=True, order=True)
 class Dress:
