@@ -35,7 +35,7 @@ class Terminated:
 
     def __post_init__(self):
         validate_dataclass(self)
-        validate('value', self.value, instance_of=bool, value=False)
+        #validate('value', self.value, instance_of=bool, value=False)
 
     def __str__(self):
         return str(self.value)
@@ -77,17 +77,6 @@ class DurationDays:
         return self.value
 
 
-"""
-    "id": "816e5212-e72a-4637-9ee8-73a3f5952cfc",
-    "startDate": "2022-12-05",
-    "endDate": "2022-12-12",
-    "dress": "54416218-701a-4826-a0ad-9fb40348d802",
-    "loaner": 2, 
-    "totalPrice": 350.0,
-    "loanDurationDays": 7,
-    "insertBy": 3,
-    "terminated": false
-"""
 @typechecked
 @dataclass(frozen=True, order=True)
 class DressLoan:
@@ -100,3 +89,9 @@ class DressLoan:
     loanDurationDays: DurationDays 
     insertBy: UserID
     terminated: Terminated
+
+    def is_equal(self, other):
+        return isinstance(other,
+                          DressLoan) and self.uuid.value == other.startDate.value and self.endDate.value == other.endDate.value and self.dressID.value == other.dressID.value \
+                            and self.loaner.value == other.loaner.value and self.totalPrice.value_in_cents == other.totalPrice.value_in_cents and \
+                                self.loanDurationDays.value == other.loanDurationDays.value and self.insertBy.value == other.insertBy.value and self.terminated.value == other.terminated.value

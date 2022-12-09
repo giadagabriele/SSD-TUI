@@ -14,6 +14,7 @@ import re
 from domains.dress.domain import *
 from domains.dress_shop.domain import *
 from domains.user.domain import *
+from domains.dress_shop.secret import *
 
 from jwt.algorithms import get_default_algorithms
 
@@ -30,7 +31,7 @@ class App:
     def __init__(self):
         self.__first_menu = self.init_first_menu()
         self.id_user = None
-        self.__menu = self.__init_menu()
+        self.__choice_menu = self.__init_choice_menu()
         self.__dressList = DressList()
         self.__dressloanList = DressLoanList()
         get_default_algorithms()
@@ -42,8 +43,8 @@ class App:
             .with_entry(Entry.create('0', 'Exit', on_selected=lambda: print('Bye Bye!'), is_exit=True)) \
             .build()
 
-    def __init_menu(self) -> Menu:
-        return Menu.Builder(MenuDescription('Welcome to our Dressy App'),
+    def __init_choice_menu(self) -> Menu:
+        return Menu.Builder(MenuDescription('Choice Menu'),
                             auto_select=lambda: print('Select what you want!')) \
             .with_entry(Entry.create('1', 'Dressloan', on_selected=lambda: self.__print_dressloans())) \
             .with_entry(Entry.create('0', 'Dress', on_selected=lambda: self.__print_dresss())) \
@@ -59,20 +60,15 @@ class App:
 
     def __run(self) -> None:
         while not self.__first_menu.run() == (True, False):
-            #il controllo già da qui, così chiami il fetch giusto ed il menù giusto
-            print("Debug 1-3")
             try:
                 self.__fetch_dressloan()
-                print("Debug 1-1")
                 self.__fetch_dress()
-                print("Debug 1-2")
             except ValueError as e:
                 print(e)
             except RuntimeError:
                 print('Failed to connect to the server! Try later!')
                 return
-        print("Debug 1-0")
-        self.__init_menu()
+            self.__choice_menu.run()
 
     def __login(self) -> bool:
         done = False
@@ -80,7 +76,6 @@ class App:
             username = self.__read("Username ", Username)
             if username.value == '0':
                 return False
-
             password = self.__read("Password ", Password)
             if password.value == '0':
                 return False
@@ -98,12 +93,9 @@ class App:
         return True
 
     def decode_token_role(self, key):
-        secret="YVEVMX6A9RcYDGWz31MKnVu6Z4loETXjS2I77AH0hbKCTRpUiwgLfcfTmt6dOZYaDtvmMxrLKKvNTFw3jQviCiX0whIoAYZrsvQoklSoTzDGFyP53WZOsWbafdAAiUa6"
-        print(jwt.decode(key, secret, algorithms=['HS512']))
-        # decoded = jwt.decode(key, secret, algorithms=['HS512'])
-        # role = re.match(r"^{'\w+'\:\s'\w+',\s'\w+'\:\s\d+,\s'\w+'\:\s\d+,\s'\w+'\:\s'\w+',\s'\w+'\:\s\d,\s'\w+'\:\s'\w+',\s'\w+'\:\s\['(\w+)'\]}", decoded)
-        # print(role.group(1))
-        # return role
+        secret=secret_key()
+        decoded = jwt.decode(key, secret, algorithms=['HS512'])
+        return decoded['groups'][0]
 
 
     @staticmethod
@@ -143,19 +135,15 @@ class App:
             self.__dressList.add_dress(dress)
 
     def __fetch_dressloan(self) -> None:
-        print("Debug 2-1")
         res = requests.get(url=f'{api_server}/loan/',
                         headers={'Authorization': f'Bearer {self.__key}'}, verify=True)
         
-        print("Debug 2-2")
         if res.status_code != 200:
             raise RuntimeError()
-        print("Debug 2-3")
 
         json = res.json()
         if json is None:
             return
-        print("Debug 2-4")
 
         for item in json:
             uuidDressLoan = DressLoanID(str(item['id']))
@@ -171,7 +159,6 @@ class App:
             self.__dressloanList.add_dressloan(dressloan)
 
     def __print_dressloans(self) -> None:
-        print("Debug 0")
         if self.__dressloanList.length() == 0:
             return
         print_sep = lambda: print('-' * 180)
@@ -179,12 +166,10 @@ class App:
         fmt = '%-10s %-30s  %-20s  %-20s %-10s %-10s'
         print(fmt % ('Number', 'Description', 'Start-Date', 'End-Date', 'Total Price', 'Terminated'))
         print_sep()
-        print("Debug 1")
         for index in range(self.__dressloanList.length()):
             item = self.__dressloanList.item(index)
             print(fmt % (index + 1, item.startDate.value, item.startDate.value,
-                         item.endDate.value, item.totalPrice.value, item.terminated.value))
-        print("Debug 2")
+                         item.endDate.value, item.totalPrice.__str__(), item.terminated.value))
         print_sep()
 
     def __print_dresss(self) -> None:

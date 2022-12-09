@@ -16,7 +16,7 @@ REGEX_PRICE = "(?P<euro>\d{0,11})(?:\.(?P<cents>\d{2}))?"
 MIN_SIZE = 38
 MAX_SIZE = 60
 MAX_VALUE_PRICE = 1000000
-MIN_VALUE_PRICE = 1000
+MIN_VALUE_PRICE = 0
 
 @typechecked
 @dataclass(frozen=True, order=True)
@@ -25,8 +25,7 @@ class DressID:
 
     def __post_init__(self):
         validate_dataclass(self)
-        validate('value', self.value,
-                 custom=pattern(REGEX_DRESS_ID))
+        validate('value', self.value, custom=pattern(REGEX_DRESS_ID))
 
     def __int__(self):
         return self.value
@@ -138,10 +137,10 @@ class Price:
 
     def __post_init__(self):
         validate_dataclass(self)
-        validate('value_in_cents', self.value_in_cents, min_value=MIN_VALUE_PRICE, max_value=self.__max_value)
+        validate('value_in_cents', self.value_in_cents, min_value=MIN_VALUE_PRICE, max_value=MAX_VALUE_PRICE)
 
     def __str__(self):
-        return f'{self.value_in_cents // 100}.{self.value_in_cents % 100:02}'
+        return f'{self.value_in_cents // 100}.{self.value_in_cents % 100}'
 
     @staticmethod
     def create(euro: int, cents: int = 0) -> 'Price':
