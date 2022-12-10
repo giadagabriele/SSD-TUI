@@ -54,23 +54,33 @@ class App:
             .with_entry(Entry.create('0', 'Back to Login', on_selected=lambda: print('Logged out\n'), is_exit=True)) \
             .build()
 
-    
+    #commesso può fare tutto
+    #user può fare solo sort ed add
     def __init_dressloan_menu(self) -> Menu:
          return Menu.Builder(MenuDescription('Dressy - Dress Loan Menu'),
                             auto_select=lambda: self.__print_dressloans()) \
             .with_entry(Entry.create('1', 'Sort by total price', on_selected=lambda: self.__dressloanList.sort_by_total_price()))\
             .with_entry(Entry.create('2', 'Add dress loan', on_selected=lambda: self.__add_dressloan()))\
-            .with_entry(Entry.create('3', 'Edit dress loan TODO', on_selected=lambda: self.__edit_dressloan()))\
+            .with_entry(Entry.create('3', 'Edit dress loan end date TODO', on_selected=lambda: self.__edit_dressloan()))\
             .with_entry(Entry.create('4', 'Delete dress loan', on_selected=lambda: self.__remove_dressloan()))\
             .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
             .build()
 
+    '''
+    add dress loan va aggiunto al menu di dress?
+    in teoria io dovrei chiedere l'id del dress quindi potrebbe diventare una cosa tipo
+    inserisci indice dress da prenotare (come remove), parte l'add aggiungendo quell'id automaticamente all'oggetto
+    e vai come un normale add loan, che poi ovviamente vedrai nel menu dress loan
+    '''
+
+    #commesso può fare tutto
+    #user può fare solo sort 
     def __init_dress_menu(self) -> Menu:
          return Menu.Builder(MenuDescription('Dressy - Dress Menu'),
                             auto_select=lambda: self.__print_dresses()) \
             .with_entry(Entry.create('1', 'Sort by price', on_selected=lambda: self.__dressList.sort_by_price()))\
             .with_entry(Entry.create('2', 'Add dress', on_selected=lambda: self.__add_dress()))\
-            .with_entry(Entry.create('3', 'Edit dress TODO', on_selected=lambda: self.__edit_dress()))\
+            .with_entry(Entry.create('3', 'Edit dress price TODO', on_selected=lambda: self.__edit_dress()))\
             .with_entry(Entry.create('4', 'Delete dress', on_selected=lambda: self.__remove_dress()))\
             .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
             .build()
@@ -242,9 +252,9 @@ class App:
         dress_uuidStr = str(dress_uuid)
         dress_id = DressID(dress_uuidStr)   #numero di prova va calcolato
         loaner_id = UserID(4)           #numero di prova va calcolato
-        total_price = self.__read('Price', Price.parse)
+        total_price = Price(125)            #numero di prova va calcolato
         duration_days = DurationDays(2)                 #numero di prova va calcolato
-        insertby_id = UserID(5)
+        insertby_id = UserID(5)           #numero di prova va calcolato
         terminated = Terminated(False)
         return loan_id, start_date, end_date, dress_id, loaner_id, total_price, duration_days, insertby_id, terminated
 
@@ -269,6 +279,14 @@ class App:
     
     def __edit_dress(self) -> None :
         pass
+        '''
+        qui faremo un edit del prezzo
+        quindi lato terminale chiederemo:
+            -indice dress (come remove) 
+            -inserisci prezzo nuovo
+        lato codice dobbiamo prendere tutto il Dress, modificare il campo prezzo
+        e dare al backend tramite PUT
+        '''
         #chiamata al backend permanente
 
     def __add_dressloan(self) -> None:
@@ -292,4 +310,12 @@ class App:
 
     def __edit_dressloan(self) -> None :
         pass
+        '''
+        qui faremo un edit della data finale
+        quindi lato terminale chiederemo:
+            -indice dress loan (come remove) 
+            -inserisci nuova data
+        lato codice dobbiamo prendere tutto il DressLoan, modificare il campo end_date
+        e dare al backend tramite PUT
+        '''
         #chiamata al backend permanente
