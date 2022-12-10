@@ -90,8 +90,9 @@ class DressLoan:
     insertBy: UserID
     terminated: Terminated
 
+    #uuid???
     def is_equal(self, other):
         return isinstance(other,
-                          DressLoan) and self.uuid.value == other.startDate.value and self.endDate.value == other.endDate.value and self.dressID.value == other.dressID.value \
+                          DressLoan) and self.startDate.value == other.startDate.value and self.endDate.value == other.endDate.value and self.dressID.value == other.dressID.value \
                             and self.loaner.value == other.loaner.value and self.totalPrice.value_in_cents == other.totalPrice.value_in_cents and \
                                 self.loanDurationDays.value == other.loanDurationDays.value and self.insertBy.value == other.insertBy.value and self.terminated.value == other.terminated.value

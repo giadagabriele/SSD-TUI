@@ -16,7 +16,7 @@ MAX_EMAIL_LEN = 25
 REGEX_EMAIL = '[A-Za-z0-9]+[\.]*[A-Za-z]*@[A-Za-z]+\.[a-z]+'
 MIN_USERNAME_LEN = 1
 MAX_USERNAME_LEN = 25
-REGEX_USERNAME = '[A-Za-z0-9]{8,25}|0'
+REGEX_USERNAME = '[A-Za-z0-9]{5,25}|0'
 
 @typechecked
 @dataclass(frozen=True, order=True)
