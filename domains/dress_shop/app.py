@@ -23,18 +23,20 @@ api_server = 'https://ssd.pingflood.tk/api/v1'
 
 
 class App:
-    __filename = Path(__file__).parent.parent / 'shoppingList.csv'
-    __delimiter = '\t'
-    __logged = False
+    # __filename = Path(__file__).parent.parent / 'shoppingList.csv'
+    # __delimiter = '\t'
+    # __logged = False
     __key = None
-    __id_dictionary = []
+    # __id_dictionary = []
 
     def __init__(self):
         self.__first_menu = self.init_first_menu()
         self.id_user = None
         self.__choice_menu = self.__init_choice_menu()
-        self.__dressloan_menu = self.__init_dressloan_menu()
-        self.__dress_menu = self.__init_dress_menu()
+        self.__dressloan_menu_commessi = self.__init_dressloan_menu_commessi()
+        self.__dressloan_menu_user = self.__init_dressloan_menu_user()
+        self.__dress_menu_commessi = self.__init_dress_menu_commessi()
+        self.__dress_menu_user = self.__init_dress_menu_user()
         self.__dressList = DressList()
         self.__dressloanList = DressLoanList()
         get_default_algorithms()
@@ -56,7 +58,7 @@ class App:
 
     #commesso può fare tutto
     #user può fare solo sort ed add
-    def __init_dressloan_menu(self) -> Menu:
+    def __init_dressloan_menu_commessi(self) -> Menu:
          return Menu.Builder(MenuDescription('Dressy - Dress Loan Menu'),
                             auto_select=lambda: self.__print_dressloans()) \
             .with_entry(Entry.create('1', 'Sort by total price', on_selected=lambda: self.__dressloanList.sort_by_total_price()))\
@@ -65,6 +67,15 @@ class App:
             .with_entry(Entry.create('4', 'Delete dress loan', on_selected=lambda: self.__remove_dressloan()))\
             .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
             .build()
+
+    def __init_dressloan_menu_user(self) -> Menu:
+         return Menu.Builder(MenuDescription('Dressy - Dress Loan Menu'),
+                            auto_select=lambda: self.__print_dressloans()) \
+            .with_entry(Entry.create('1', 'Sort by total price', on_selected=lambda: self.__dressloanList.sort_by_total_price()))\
+            .with_entry(Entry.create('2', 'Add dress loan', on_selected=lambda: self.__add_dressloan()))\
+            .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
+            .build()
+
 
     '''
     add dress loan va aggiunto al menu di dress?
@@ -75,13 +86,20 @@ class App:
 
     #commesso può fare tutto
     #user può fare solo sort 
-    def __init_dress_menu(self) -> Menu:
+    def __init_dress_menu_commessi(self) -> Menu:
          return Menu.Builder(MenuDescription('Dressy - Dress Menu'),
                             auto_select=lambda: self.__print_dresses()) \
             .with_entry(Entry.create('1', 'Sort by price', on_selected=lambda: self.__dressList.sort_by_price()))\
             .with_entry(Entry.create('2', 'Add dress', on_selected=lambda: self.__add_dress()))\
             .with_entry(Entry.create('3', 'Edit dress price TODO', on_selected=lambda: self.__edit_dress()))\
             .with_entry(Entry.create('4', 'Delete dress', on_selected=lambda: self.__remove_dress()))\
+            .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
+            .build()
+
+    def __init_dress_menu_user(self) -> Menu:
+         return Menu.Builder(MenuDescription('Dressy - Dress Menu'),
+                            auto_select=lambda: self.__print_dresses()) \
+            .with_entry(Entry.create('1', 'Sort by price', on_selected=lambda: self.__dressList.sort_by_price()))\
             .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
             .build()
 
@@ -105,10 +123,16 @@ class App:
             self.__choice_menu.run()
 
     def __run_dressloan_menu(self) -> None:
-        self.__dressloan_menu.run()
+        if (self.decode_token_role(self.__key)=='commessi'):
+            self.__dressloan_menu_commessi.run()
+        elif (self.decode_token_role(self.__key)=='user'):
+            self.__dressloan_menu_user.run()
 
     def __run_dress_menu(self) -> None:
-        self.__dress_menu.run()
+        if (self.decode_token_role(self.__key)=='commessi'):
+            self.__dress_menu_commessi.run()
+        elif (self.decode_token_role(self.__key)=='user'):
+            self.__dress_menu_user.run()
 
     def __login(self) -> bool:
         done = False
@@ -127,7 +151,6 @@ class App:
                 print('This user does not exist!\n')
             else:
                 self.__key = res.json()['access']
-                print(self.decode_token_role(self.__key))
                 print('Login succeed\n')
                 done = True
         return True
