@@ -33,7 +33,7 @@ class App:
         self.__first_menu = self.init_first_menu()
         self.id_user = None
         self.__choice_menu = self.__init_choice_menu()
-        self.__dressloan_menu = self.__init_dressloans_menu()
+        self.__dressloan_menu = self.__init_dressloan_menu()
         self.__dress_menu = self.__init_dress_menu()
         self.__dressList = DressList()
         self.__dressloanList = DressLoanList()
@@ -41,25 +41,28 @@ class App:
 
     def init_first_menu(self) -> Menu:
         return Menu.Builder(MenuDescription('Dressy'),
-                            auto_select=lambda: print('Welcome! Please select an option')) \
+                            auto_select=lambda: print('\nWelcome! Please select an option\n')) \
             .with_entry(Entry.create('1', 'Login', is_logged=lambda: self.__login())) \
             .with_entry(Entry.create('0', 'Exit', on_selected=lambda: print('Bye Bye!\n'), is_exit=True)) \
             .build()
 
     def __init_choice_menu(self) -> Menu:
         return Menu.Builder(MenuDescription('Dressy - Choice Menu'),
-                            auto_select=lambda: print('Select the menu to display')) \
-            .with_entry(Entry.create('1', 'Dressloan', on_selected=lambda: self.__run_dressloan_menu())) \
+                            auto_select=lambda: print('\nSelect the menu to display\n')) \
+            .with_entry(Entry.create('1', 'Dress Loan', on_selected=lambda: self.__run_dressloan_menu())) \
             .with_entry(Entry.create('2', 'Dress', on_selected=lambda: self.__run_dress_menu())) \
-            .with_entry(Entry.create('0', 'Go back to Login', on_selected=lambda: print('Logged out\n'), is_exit=True)) \
+            .with_entry(Entry.create('0', 'Back to Login', on_selected=lambda: print('Logged out\n'), is_exit=True)) \
             .build()
 
     
-    def __init_dressloans_menu(self) -> Menu:
+    def __init_dressloan_menu(self) -> Menu:
          return Menu.Builder(MenuDescription('Dressy - Dress Loan Menu'),
                             auto_select=lambda: self.__print_dressloans()) \
             .with_entry(Entry.create('1', 'Sort by total price', on_selected=lambda: self.__dressloanList.sort_by_total_price()))\
-            .with_entry(Entry.create('0', 'Go back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
+            .with_entry(Entry.create('2', 'Add dress loan', on_selected=lambda: self.__add_dressloan()))\
+            .with_entry(Entry.create('3', 'Edit dress loan TODO', on_selected=lambda: self.__edit_dressloan()))\
+            .with_entry(Entry.create('4', 'Delete dress loan', on_selected=lambda: self.__remove_dressloan()))\
+            .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
             .build()
 
     def __init_dress_menu(self) -> Menu:
@@ -67,8 +70,9 @@ class App:
                             auto_select=lambda: self.__print_dresses()) \
             .with_entry(Entry.create('1', 'Sort by price', on_selected=lambda: self.__dressList.sort_by_price()))\
             .with_entry(Entry.create('2', 'Add dress', on_selected=lambda: self.__add_dress()))\
-            .with_entry(Entry.create('3', 'Delete dress', on_selected=lambda: self.__remove_dress()))\
-            .with_entry(Entry.create('0', 'Go back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
+            .with_entry(Entry.create('3', 'Edit dress TODO', on_selected=lambda: self.__edit_dress()))\
+            .with_entry(Entry.create('4', 'Delete dress', on_selected=lambda: self.__remove_dress()))\
+            .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
             .build()
 
     def run(self) -> None:
@@ -110,11 +114,11 @@ class App:
                                 verify=True)
 
             if res.status_code != 200:
-                print('This user does not exist!')
+                print('This user does not exist!\n')
             else:
                 self.__key = res.json()['access']
                 print(self.decode_token_role(self.__key))
-                print('Login success')
+                print('Login succeed\n')
                 done = True
         return True
 
@@ -136,7 +140,7 @@ class App:
                 res = builder(line.strip())
                 return res
             except (TypeError, ValueError, ValidationError) as e:
-                print('Format not satisfied')
+                print('Format not satisfied\n')
 
     def __fetch_dress(self) -> None:
         res = requests.get(url=f'{api_server}/dress/',
@@ -190,12 +194,12 @@ class App:
         print_sep = lambda: print('-' * 180)
         print_sep()
         fmt = '%-10s %-30s  %-20s  %-20s %-30s %-10s'
-        print(fmt % ('Number', 'Description', 'Start-Date', 'End-Date', 'Total Price', 'Terminated'))
+        print(fmt % ('Number', 'Start-Date', 'End-Date', 'Total Price', 'Duration Days', 'Terminated'))      #description? 
         print_sep()
         for index in range(self.__dressloanList.length()):
             item = self.__dressloanList.item(index)
-            print(fmt % (index + 1, item.startDate.value, item.startDate.value,
-                         item.endDate.value, item.totalPrice.__str__(), item.terminated.value))
+            print(fmt % (index + 1, item.startDate.value, item.endDate.value, 
+                            item.totalPrice.__str__(), item.loanDurationDays.value, item.terminated.value))
         print_sep()
 
     def __print_dresses(self) -> None:
@@ -212,25 +216,43 @@ class App:
                          item.color.value, item.size.value, item.description.value, item.deleted.value))
         print_sep()
 
-    def __read_dress(self) -> Tuple[DressID, Brand, Price, Material, Color, Size, Description, Deleted]:
-        #generare un uuid randomico in stringa
-        id = DressID("517e90e5-2020-40d7-aa3a-3507c1ca24dd")
+    def __read_dress(self) -> Tuple[DressID, Brand, Price, Material, Color, Size, Description, Deleted]:        #Date poi nell'add darà problemi?
+        dress_uuid = uuid.uuid4()
+        dress_uuidStr = str(dress_uuid)
+        id = DressID(dress_uuidStr)
         dress_id = id
-        brand = self.__read('Brand', Brand)
+        brand = self.__read('Brand (GUCCI or ARMANI or VALENTINO)', Brand)
         price = self.__read('Price', Price.parse)
-        material = self.__read('Material', Material)
-        color = self.__read('Color', Color)
-        size = self.__read('Size', int)
+        material = self.__read('Material (WOOL or SILK or COTTON)', Material)
+        color = self.__read('Color (BLACK or BLUE or WHITE or RED or PINK or GRAY)', Color)
+        size = self.__read('Size (from 38 to 60)', int)
         real_size = Size(size)
         description = self.__read('Description', Description)
         deleted = Deleted(False)
         return dress_id, brand, price, material, color, real_size, description, deleted
 
+                                                                                 #loaner                     #insertBy
+    def __read_dressloan(self) -> Tuple[DressLoanID, StartDate, EndDate, DressID, UserID, Price, DurationDays, UserID, Terminated]:
+        loan_uuid = uuid.uuid4()
+        loan_uuidStr = str(loan_uuid)
+        loan_id = DressLoanID(loan_uuidStr)
+        start_date = self.__read('Start Date (format yyyy-mm-dd)', StartDate)
+        end_date = self.__read('End Date (format yyyy-mm-dd)', EndDate)
+        dress_uuid = uuid.uuid4()
+        dress_uuidStr = str(dress_uuid)
+        dress_id = DressID(dress_uuidStr)   #numero di prova va calcolato
+        loaner_id = UserID(4)           #numero di prova va calcolato
+        total_price = self.__read('Price', Price.parse)
+        duration_days = DurationDays(2)                 #numero di prova va calcolato
+        insertby_id = UserID(5)
+        terminated = Terminated(False)
+        return loan_id, start_date, end_date, dress_id, loaner_id, total_price, duration_days, insertby_id, terminated
+
     def __add_dress(self) -> None:
         newDress = Dress(*self.__read_dress())
         self.__dressList.add_dress(newDress)
         print('Dress added!\n')
-        #chiamata al backend permanente?
+        #chiamata al backend permanente
 
     def __remove_dress(self) -> None :
         def builder(value: str) -> int:
@@ -239,8 +261,35 @@ class App:
 
         index = self.__read('Index (0 to cancel)', builder)
         if index == 0:
-            print('Cancelled!')
+            print('Cancelled!\n')
             return
         self.__dressList.remove_dress_by_index(index - 1)
-        print('Dress removed!')
-        #chiamata al backend permanente?
+        print('Dress removed!\n')
+        #chiamata al backend permanente
+    
+    def __edit_dress(self) -> None :
+        pass
+        #chiamata al backend permanente
+
+    def __add_dressloan(self) -> None:
+        newDressLoan = DressLoan(*self.__read_dressloan())
+        self.__dressloanList.add_dressloan(newDressLoan)
+        print('Dress Loan added!\n')
+        #chiamata al backend permanente
+
+    def __remove_dressloan(self) -> None :
+        def builder(value: str) -> int:
+            validate('value', int(value), min_value=0, max_value=self.__dressloanList.length())
+            return int(value)
+
+        index = self.__read('Index (0 to cancel)', builder)
+        if index == 0:
+            print('Cancelled!\n')
+            return
+        self.__dressloanList.remove_dressloan_by_index(index - 1)
+        print('Dress removed!\n')
+        #chiamata al backend permanente
+
+    def __edit_dressloan(self) -> None :
+        pass
+        #chiamata al backend permanente
