@@ -180,11 +180,9 @@ class Dress:
     description: Description
     deleted: Deleted
 
-    #id???
+   
     def is_equal(self, other):
         return isinstance(other,
-                          Dress) and self.brand.value == other.brand.value and self.price.value_in_cents == \
-               other.price.value_in_cents and self.material.value == other.material.value and self.color.value == other.color.value \
-                and self.size.value == other.size.value and self.description.value == self.description.value and self.deleted.value == other.deleted.value
+                          Dress) and self.id.value == other.id.value 
 
 

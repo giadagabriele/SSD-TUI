@@ -11,6 +11,7 @@ from valid8 import ValidationError, validate
 import jwt
 import re
 import uuid
+import os
 
 from domains.dress.domain import *
 from domains.dress_shop.domain import *
@@ -27,6 +28,8 @@ class App:
     # __delimiter = '\t'
     # __logged = False
     __key = None
+    __userID = None
+    __role = None
     # __id_dictionary = []
 
     def __init__(self):
@@ -62,9 +65,8 @@ class App:
          return Menu.Builder(MenuDescription('Dressy - Dress Loan Menu'),
                             auto_select=lambda: self.__print_dressloans()) \
             .with_entry(Entry.create('1', 'Sort by total price', on_selected=lambda: self.__dressloanList.sort_by_total_price()))\
-            .with_entry(Entry.create('2', 'Add dress loan', on_selected=lambda: self.__add_dressloan()))\
-            .with_entry(Entry.create('3', 'Edit dress loan end date TODO', on_selected=lambda: self.__edit_dressloan()))\
-            .with_entry(Entry.create('4', 'Delete dress loan', on_selected=lambda: self.__remove_dressloan()))\
+            .with_entry(Entry.create('2', 'Edit dress loan end date TODO', on_selected=lambda: self.__edit_dressloan()))\
+            .with_entry(Entry.create('3', 'Delete dress loan', on_selected=lambda: self.__remove_dressloan()))\
             .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
             .build()
 
@@ -72,17 +74,9 @@ class App:
          return Menu.Builder(MenuDescription('Dressy - Dress Loan Menu'),
                             auto_select=lambda: self.__print_dressloans()) \
             .with_entry(Entry.create('1', 'Sort by total price', on_selected=lambda: self.__dressloanList.sort_by_total_price()))\
-            .with_entry(Entry.create('2', 'Add dress loan', on_selected=lambda: self.__add_dressloan()))\
             .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
             .build()
 
-
-    '''
-    add dress loan va aggiunto al menu di dress?
-    in teoria io dovrei chiedere l'id del dress quindi potrebbe diventare una cosa tipo
-    inserisci indice dress da prenotare (come remove), parte l'add aggiungendo quell'id automaticamente all'oggetto
-    e vai come un normale add loan, che poi ovviamente vedrai nel menu dress loan
-    '''
 
     #commesso può fare tutto
     #user può fare solo sort 
@@ -93,6 +87,7 @@ class App:
             .with_entry(Entry.create('2', 'Add dress', on_selected=lambda: self.__add_dress()))\
             .with_entry(Entry.create('3', 'Edit dress price TODO', on_selected=lambda: self.__edit_dress()))\
             .with_entry(Entry.create('4', 'Delete dress', on_selected=lambda: self.__remove_dress()))\
+            .with_entry(Entry.create('5', 'Reserve', on_selected=lambda: self.__add_dressloan()))\
             .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
             .build()
 
@@ -100,6 +95,7 @@ class App:
          return Menu.Builder(MenuDescription('Dressy - Dress Menu'),
                             auto_select=lambda: self.__print_dresses()) \
             .with_entry(Entry.create('1', 'Sort by price', on_selected=lambda: self.__dressList.sort_by_price()))\
+            .with_entry(Entry.create('2', 'Reserve', on_selected=lambda: self.__add_dressloan()))\
             .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
             .build()
 
@@ -123,26 +119,28 @@ class App:
             self.__choice_menu.run()
 
     def __run_dressloan_menu(self) -> None:
-        if (self.decode_token_role(self.__key)=='commessi'):
+        if self.__role =='commessi':
             self.__dressloan_menu_commessi.run()
-        elif (self.decode_token_role(self.__key)=='user'):
+        elif  self.__role =='user':
             self.__dressloan_menu_user.run()
 
     def __run_dress_menu(self) -> None:
-        if (self.decode_token_role(self.__key)=='commessi'):
+        if  self.__role =='commessi':
             self.__dress_menu_commessi.run()
-        elif (self.decode_token_role(self.__key)=='user'):
+        elif  self.__role =='user':
             self.__dress_menu_user.run()
 
     def __login(self) -> bool:
         done = False
         while not done:
-            username = self.__read("Username ", Username)
-            if username.value == '0':
-                return False
-            password = self.__read("Password ", Password)
-            if password.value == '0':
-                return False
+            username = "commesso1"
+            password = "Gift-Contort-Revert5"
+            # username = self.__read("Username ", Username)
+            # if username.value == '0':
+            #     return False
+            # password = self.__read("Password ", Password)
+            # if password.value == '0':
+            #     return False
 
             res = requests.post(url=f'{api_server}/login/', data={'username': username, 'password': password},
                                 verify=True)
@@ -152,13 +150,15 @@ class App:
             else:
                 self.__key = res.json()['access']
                 print('Login succeed\n')
+                self.decode_token_role(self.__key)
                 done = True
         return True
 
     def decode_token_role(self, key):
         secret=secret_key()
         decoded = jwt.decode(key, secret, algorithms=['HS512'])
-        return decoded['groups'][0]
+        self.__userID = decoded['user_id']
+        self.__role = decoded['groups'][0]
 
 
     @staticmethod
@@ -176,13 +176,15 @@ class App:
                 print('Format not satisfied\n')
 
     def __fetch_dress(self) -> None:
-        res = requests.get(url=f'{api_server}/dress/',
-                           headers={'Authorization': f'Bearer {self.__key}'}, verify=True)
+        self.__dressList.clear()
+
+        res = requests.get(url=f'{api_server}/dress/', verify=True, headers={'Authorization': f'Bearer {self.__key}'})
 
         if res.status_code != 200:
             raise RuntimeError()
 
         json = res.json()
+        
         if json is None:
             return
         for item in json:
@@ -198,6 +200,7 @@ class App:
             self.__dressList.add_dress(dress)
 
     def __fetch_dressloan(self) -> None:
+        self.__dressloanList.clear()
         res = requests.get(url=f'{api_server}/loan/',
                         headers={'Authorization': f'Bearer {self.__key}'}, verify=True)
         
@@ -243,6 +246,7 @@ class App:
         fmt = '%-10s %-20s  %-20s  %-20s %-20s %-20s %-30s %-10s'
         print(fmt % ('Number', 'Brand', 'Price', 'Material', 'Color', 'Size', 'Description', 'Deleted'))
         print_sep()
+        print(self.__dressList.length())
         for index in range(self.__dressList.length()):
             item = self.__dressList.item(index)
             print(fmt % (index + 1, item.brand.value, item.price.__str__(), item.material.value,
@@ -252,8 +256,7 @@ class App:
     def __read_dress(self) -> Tuple[DressID, Brand, Price, Material, Color, Size, Description, Deleted]:        #Date poi nell'add darà problemi?
         dress_uuid = uuid.uuid4()
         dress_uuidStr = str(dress_uuid)
-        id = DressID(dress_uuidStr)
-        dress_id = id
+        dress_id = DressID(dress_uuidStr)      #numero tmp verrà sovrascritto tramite indice di dress
         brand = self.__read('Brand (GUCCI or ARMANI or VALENTINO)', Brand)
         price = self.__read('Price', Price.parse)
         material = self.__read('Material (WOOL or SILK or COTTON)', Material)
@@ -268,37 +271,60 @@ class App:
     def __read_dressloan(self) -> Tuple[DressLoanID, StartDate, EndDate, DressID, UserID, Price, DurationDays, UserID, Terminated]:
         loan_uuid = uuid.uuid4()
         loan_uuidStr = str(loan_uuid)
-        loan_id = DressLoanID(loan_uuidStr)
+        loan_id = DressLoanID(loan_uuidStr)     #numero tmp verrà sovrascritto tramite indice di dressloan
         start_date = self.__read('Start Date (format yyyy-mm-dd)', StartDate)
         end_date = self.__read('End Date (format yyyy-mm-dd)', EndDate)
         dress_uuid = uuid.uuid4()
         dress_uuidStr = str(dress_uuid)
-        dress_id = DressID(dress_uuidStr)   #numero di prova va calcolato
-        loaner_id = UserID(4)           #numero di prova va calcolato
-        total_price = Price(125)            #numero di prova va calcolato
-        duration_days = DurationDays(2)                 #numero di prova va calcolato
-        insertby_id = UserID(5)           #numero di prova va calcolato
+        dress_id = DressID(dress_uuidStr)  #numero tmp verrà sovrascritto tramite indice di dress
+        loaner_id = self.__read('Loaner (if you are a user PRESS ENTER)', str)
+        if loaner_id == "":
+            loaner_id = self.__userID
+        real_loaner_id = UserID(loaner_id)      
+        total_price = Price(125)            #numero tmp verrà sovrascritto con i dati aggiornati dal backend
+        duration_days = DurationDays(2)            #numero tmp verrà sovrascritto con i dati aggiornati dal backend
+        insertby_id = UserID(3)       #numero tmp verrà sovrascritto tramite indice di dressloan
         terminated = Terminated(False)
-        return loan_id, start_date, end_date, dress_id, loaner_id, total_price, duration_days, insertby_id, terminated
+        return loan_id, start_date, end_date, dress_id, real_loaner_id, total_price, duration_days, insertby_id, terminated
 
     def __add_dress(self) -> None:
         newDress = Dress(*self.__read_dress())
-        self.__dressList.add_dress(newDress)
+              
+        newDressJSON = {
+        "brandType": newDress.brand.value,
+        "priceInCents": newDress.price.value_in_cents,
+        "materialType": newDress.material.value,
+        "colorType": newDress.color.value,
+        "size": newDress.size.value,
+        "description": newDress.description.value,
+        "deleted": newDress.deleted.value,
+        }
+
+        res = requests.post(url=f'{api_server}/dress/', json=newDressJSON, verify=True, headers={'Authorization': f'Bearer {self.__key}'})
+
+        self.__fetch_dress()
+
         print('Dress added!\n')
-        #chiamata al backend permanente
+
 
     def __remove_dress(self) -> None :
         def builder(value: str) -> int:
             validate('value', int(value), min_value=0, max_value=self.__dressList.length())
             return int(value)
 
+
         index = self.__read('Index (0 to cancel)', builder)
         if index == 0:
             print('Cancelled!\n')
             return
+
+        oldDress = self.__dressList.item(index - 1)
+
         self.__dressList.remove_dress_by_index(index - 1)
         print('Dress removed!\n')
-        #chiamata al backend permanente
+
+        res = requests.delete(url=f'{api_server}/dress/{oldDress.id.value}', verify=True, headers={'Authorization': f'Bearer {self.__key}'})
+        #print(res)
     
     def __edit_dress(self) -> None :
         pass
@@ -313,10 +339,28 @@ class App:
         #chiamata al backend permanente
 
     def __add_dressloan(self) -> None:
+        def builder(value: str) -> int:
+            validate('value', int(value), min_value=0, max_value=self.__dressList.length())
+            return int(value)
+        index = self.__read('Index (0 to cancel)', builder)
+        if index == 0:
+            print('Selected!\n')
+            return
+        dress_selected = self.__dressList.item(index - 1)
         newDressLoan = DressLoan(*self.__read_dressloan())
-        self.__dressloanList.add_dressloan(newDressLoan)
-        print('Dress Loan added!\n')
-        #chiamata al backend permanente
+        newDressLoan.dressID = DressID(dress_selected.id.value)
+        newDressLoan.insertBy = UserID(self.__userID)
+        newDressLoanJSON = {
+        "startDate": newDressLoan.startDate.value,
+        "endDate": newDressLoan.endDate.value,
+        "dress": newDressLoan.dressID.value,
+        "loaner": newDressLoan.loaner.value,
+        }
+        res = requests.post(url=f'{api_server}/loan/', json=newDressLoanJSON, verify=True, headers={'Authorization': f'Bearer {self.__key}'})
+        #print(res)
+        self.__fetch_dressloan()
+        
+        print('Reserved!\n')
 
     def __remove_dressloan(self) -> None :
         def builder(value: str) -> int:
@@ -327,9 +371,13 @@ class App:
         if index == 0:
             print('Cancelled!\n')
             return
+
+        oldDressLoan = self.__dressloanList.item(index - 1)
+
         self.__dressloanList.remove_dressloan_by_index(index - 1)
         print('Dress removed!\n')
-        #chiamata al backend permanente
+
+        res = requests.delete(url=f'{api_server}/loan/{oldDressLoan.uuid.value}', verify=True, headers={'Authorization': f'Bearer {self.__key}'})
 
     def __edit_dressloan(self) -> None :
         pass
