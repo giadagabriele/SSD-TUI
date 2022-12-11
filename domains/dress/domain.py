@@ -169,7 +169,7 @@ class Price:
 
 
 @typechecked
-@dataclass(frozen=True, order=True)
+@dataclass(order=True)
 class Dress:
     id: DressID
     brand: Brand

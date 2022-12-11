@@ -1,7 +1,7 @@
 
 from domains.dress.domain import *
 from domains.user.domain import *
-
+from dataclasses import field
 
 # REGEX_DRESSLOAN_ID = "^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$"
 # REGEX_DRESSLOAN_ID = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
@@ -35,7 +35,7 @@ class Terminated:
 
     def __post_init__(self):
         validate_dataclass(self)
-        #validate('value', self.value, instance_of=bool, value=False)
+        validate('value', self.value, instance_of=bool)
 
     def __str__(self):
         return str(self.value)

@@ -15,28 +15,24 @@ import requests
 from jwt.algorithms import get_default_algorithms
 from rich.console import Console
 from rich.status import Status
+from rich import inspect
 from valid8 import ValidationError, validate
 
 from domains.dress.domain import *
 from domains.dress_loan.menu import Entry, Menu, MenuDescription
 from domains.dress_shop.domain import *
-from domains.dress_shop.secret import *
 from domains.user.domain import *
 from settings import *
 
 api_server = settings['BASE_URL']
 
 class App:
-    # __filename = Path(__file__).parent.parent / 'shoppingList.csv'
-    # __delimiter = '\t'
-    # __logged = False
     __key = None
     __refreshKey = None
     __userID = None
     __role = None
     __username = None
     __console = None
-    # __id_dictionary = []
 
     def __init__(self):
         self.__console=Console()
@@ -67,14 +63,12 @@ class App:
             .with_entry(Entry.create('0', 'Back to Login', on_selected=lambda: print('Logged out\n'), is_exit=True)) \
             .build()
 
-    #commesso può fare tutto
-    #user può fare solo sort ed add
     def __init_dressloan_menu_commessi(self) -> Menu:
          return Menu.Builder(MenuDescription('Dressy - Dress Loan Menu'),
                             auto_select=lambda: self.__print_dressloans()) \
             .with_entry(Entry.create('1', 'Sort by total price', on_selected=lambda: self.__dressloanList.sort_by_total_price()))\
-            .with_entry(Entry.create('2', 'Edit dress loan end date TODO', on_selected=lambda: self.__edit_dressloan()))\
-            .with_entry(Entry.create('3', 'Delete dress loan', on_selected=lambda: self.__remove_dressloan()))\
+            .with_entry(Entry.create('2', 'Extend loan', on_selected=lambda: self.__edit_dressloan_end_date()))\
+            .with_entry(Entry.create('3', 'Close loan', on_selected=lambda: self.__remove_dressloan()))\
             .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
             .build()
 
@@ -85,16 +79,13 @@ class App:
             .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
             .build()
 
-
-    #commesso può fare tutto
-    #user può fare solo sort 
     def __init_dress_menu_commessi(self) -> Menu:
          return Menu.Builder(MenuDescription('Dressy - Dress Menu'),
                             auto_select=lambda: self.__print_dresses()) \
             .with_entry(Entry.create('1', 'Sort by price', on_selected=lambda: self.__dressList.sort_by_price()))\
             .with_entry(Entry.create('2', 'Add dress', on_selected=lambda: self.__add_dress()))\
-            .with_entry(Entry.create('3', 'Edit dress price TODO', on_selected=lambda: self.__edit_dress()))\
-            .with_entry(Entry.create('4', 'Delete dress', on_selected=lambda: self.__remove_dress()))\
+            .with_entry(Entry.create('3', 'Edit dress price', on_selected=lambda: self.__edit_dress_price()))\
+            .with_entry(Entry.create('4', 'Make dress unavailable', on_selected=lambda: self.__remove_dress()))\
             .with_entry(Entry.create('5', 'Reserve', on_selected=lambda: self.__add_dressloan()))\
             .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
             .build()
@@ -241,8 +232,8 @@ class App:
             except (TypeError, ValueError, ValidationError) as e:
                 print('Format not satisfied\n')
 
-    def __fetch_dress(self) -> None:
-        self.__dressList.clear()        
+    def __fetch_dress(self) -> None:    
+        self.__dressList.clear() 
         res = requests.get(url=f'{api_server}/dress/', verify=True, headers={'Authorization': f'Bearer {self.__key}'})    
         if res.status_code != 200:
             raise RuntimeError()
@@ -292,13 +283,13 @@ class App:
             return
         print_sep = lambda: print('-' * 180)
         print_sep()
-        fmt = '%-10s %-30s  %-20s  %-20s %-30s %-10s'
-        print(fmt % ('Number', 'Start-Date', 'End-Date', 'Total Price', 'Duration Days', 'Terminated'))      #description? 
+        fmt = '%-10s %-30s  %-20s  %-20s %-30s %-20s %-10s'
+        print(fmt % ('Number', 'Start-Date', 'End-Date', 'Total Price', 'Duration Days', 'Loaner ID', 'Terminated'))      #description? 
         print_sep()
         for index in range(self.__dressloanList.length()):
             item = self.__dressloanList.item(index)
             print(fmt % (index + 1, item.startDate.value, item.endDate.value, 
-                            item.totalPrice.__str__(), item.loanDurationDays.value, item.terminated.value))
+                            item.totalPrice.__str__(), item.loanDurationDays.value, item.loaner.value, item.terminated.value))
         print_sep()
 
     def __print_dresses(self) -> None:
@@ -309,7 +300,6 @@ class App:
         fmt = '%-10s %-20s  %-20s  %-20s %-20s %-20s %-30s %-10s'
         print(fmt % ('Number', 'Brand', 'Price', 'Material', 'Color', 'Size', 'Description', 'Deleted'))
         print_sep()
-        print(self.__dressList.length())
         for index in range(self.__dressList.length()):
             item = self.__dressList.item(index)
             print(fmt % (index + 1, item.brand.value, item.price.__str__(), item.material.value,
@@ -319,7 +309,7 @@ class App:
     def __read_dress(self) -> Tuple[DressID, Brand, Price, Material, Color, Size, Description, Deleted]:        #Date poi nell'add darà problemi?
         dress_uuid = uuid.uuid4()
         dress_uuidStr = str(dress_uuid)
-        dress_id = DressID(dress_uuidStr)      #numero tmp verrà sovrascritto tramite indice di dress
+        dress_id = DressID(dress_uuidStr)      #numero tmp verrà sovrascritto con i dati aggiornati dal backend
         brand = self.__read('Brand (GUCCI or ARMANI or VALENTINO)', Brand)
         price = self.__read('Price', Price.parse)
         material = self.__read('Material (WOOL or SILK or COTTON)', Material)
@@ -334,7 +324,7 @@ class App:
     def __read_dressloan(self) -> Tuple[DressLoanID, StartDate, EndDate, DressID, UserID, Price, DurationDays, UserID, Terminated]:
         loan_uuid = uuid.uuid4()
         loan_uuidStr = str(loan_uuid)
-        loan_id = DressLoanID(loan_uuidStr)     #numero tmp verrà sovrascritto tramite indice di dressloan
+        loan_id = DressLoanID(loan_uuidStr)     #numero tmp verrà sovrascritto con i dati aggiornati dal backend
         start_date = self.__read('Start Date (format yyyy-mm-dd)', StartDate)
         end_date = self.__read('End Date (format yyyy-mm-dd)', EndDate)
         dress_uuid = uuid.uuid4()
@@ -343,10 +333,10 @@ class App:
         loaner_id = self.__read('Loaner (if you are a user PRESS ENTER)', str)
         if loaner_id == "":
             loaner_id = self.__userID
-        real_loaner_id = UserID(loaner_id)      
+        real_loaner_id = UserID(int(loaner_id))      
         total_price = Price(125)            #numero tmp verrà sovrascritto con i dati aggiornati dal backend
         duration_days = DurationDays(2)            #numero tmp verrà sovrascritto con i dati aggiornati dal backend
-        insertby_id = UserID(3)       #numero tmp verrà sovrascritto tramite indice di dressloan
+        insertby_id = UserID(3)       #numero tmp verrà sovrascritto tramite login
         terminated = Terminated(False)
         return loan_id, start_date, end_date, dress_id, real_loaner_id, total_price, duration_days, insertby_id, terminated
 
@@ -384,22 +374,47 @@ class App:
         oldDress = self.__dressList.item(index - 1)
 
         self.__dressList.remove_dress_by_index(index - 1)
-        print('Dress removed!\n')
 
         res = requests.delete(url=f'{api_server}/dress/{oldDress.id.value}', verify=True, headers={'Authorization': f'Bearer {self.__key}'})
         #print(res)
+
+        self.__fetch_dress()
+
+        print('Dress marked as unavailable!\n')
     
-    def __edit_dress(self) -> None :
-        pass
-        '''
-        qui faremo un edit del prezzo
-        quindi lato terminale chiederemo:
-            -indice dress (come remove) 
-            -inserisci prezzo nuovo
-        lato codice dobbiamo prendere tutto il Dress, modificare il campo prezzo
-        e dare al backend tramite PUT
-        '''
-        #chiamata al backend permanente
+    def __edit_dress_price(self) -> None :
+        def builder(value: str) -> int:
+            validate('value', int(value), min_value=0, max_value=self.__dressList.length())
+            return int(value)
+
+
+        index = self.__read('Index (0 to cancel)', builder)
+        if index == 0:
+            print('Cancelled!\n')
+            return
+
+        edited_dress = self.__dressList.item(index - 1)
+        edited_price = self.__read('Price', Price.parse)
+        edited_dress.price = edited_price
+        
+
+        newEditedDressJSON = {
+        "brandType": edited_dress.brand.value,
+        "priceInCents": edited_dress.price.value_in_cents,
+        "materialType": edited_dress.material.value,
+        "colorType": edited_dress.color.value,
+        "size": edited_dress.size.value,
+        "description": edited_dress.description.value,
+        "deleted": edited_dress.deleted.value,
+        }
+
+        res = requests.put(url=f'{api_server}/dress/{edited_dress.id.value}', json=newEditedDressJSON, verify=True, headers={'Authorization': f'Bearer {self.__key}'})
+        #print(res.json())
+
+        self.__fetch_dress()
+
+        print('Dress price edited!\n')
+        
 
     def __add_dressloan(self) -> None:
         def builder(value: str) -> int:
@@ -438,18 +453,41 @@ class App:
         oldDressLoan = self.__dressloanList.item(index - 1)
 
         self.__dressloanList.remove_dressloan_by_index(index - 1)
-        print('Dress removed!\n')
 
         res = requests.delete(url=f'{api_server}/loan/{oldDressLoan.uuid.value}', verify=True, headers={'Authorization': f'Bearer {self.__key}'})
 
-    def __edit_dressloan(self) -> None :
-        pass
-        '''
-        qui faremo un edit della data finale
-        quindi lato terminale chiederemo:
-            -indice dress loan (come remove) 
-            -inserisci nuova data
-        lato codice dobbiamo prendere tutto il DressLoan, modificare il campo end_date
-        e dare al backend tramite PUT
-        '''
-        #chiamata al backend permanente
+        self.__fetch_dressloan()
+
+        print('Dress Loan marked as terminated!\n')
+
+
+    def __edit_dressloan_end_date(self) -> None :
+        def builder(value: str) -> int:
+            validate('value', int(value), min_value=0, max_value=self.__dressloanList.length())
+            return int(value)
+
+
+        index = self.__read('Index (0 to cancel)', builder)
+        if index == 0:
+            print('Cancelled!\n')
+            return
+
+        edited_dressloan = self.__dressloanList.item(index - 1)
+        edited_end_date = self.__read('End Date (format yyyy-mm-dd)', EndDate)
+        edited_dressloan.endDate = edited_end_date
+        
+
+        newEditedDressLoanJSON = {
+        "startDate": edited_dressloan.startDate.value,
+        "endDate": edited_dressloan.endDate.value,
+        "dress": edited_dressloan.dressID.value,
+        "loaner": edited_dressloan.loaner.value,
+        }
+        
+
+        res = requests.put(url=f'{api_server}/loan/{edited_dressloan.uuid.value}', json=newEditedDressLoanJSON, verify=True, headers={'Authorization': f'Bearer {self.__key}'})
+        #print(res.json())
+
+        self.__fetch_dressloan()
+
+        print('End date extended!\n')
