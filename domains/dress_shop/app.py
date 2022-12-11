@@ -1,38 +1,45 @@
 import csv
+import getpass
+import json
+import os
+import re
 import sys
+import uuid
 from getpass import getpass
 from pathlib import Path
 from typing import Any, Callable, Tuple
 from wsgiref import headers
 
-import requests
-from domains.dress_loan.menu import Entry, Menu, MenuDescription
-from valid8 import ValidationError, validate
 import jwt
-import re
-import uuid
-import os
+import requests
+from jwt.algorithms import get_default_algorithms
+from rich.console import Console
+from rich.status import Status
+from valid8 import ValidationError, validate
 
 from domains.dress.domain import *
+from domains.dress_loan.menu import Entry, Menu, MenuDescription
 from domains.dress_shop.domain import *
-from domains.user.domain import *
 from domains.dress_shop.secret import *
+from domains.user.domain import *
+from settings import *
 
-from jwt.algorithms import get_default_algorithms
-
-api_server = 'https://ssd.pingflood.tk/api/v1'
-
+api_server = settings['BASE_URL']
 
 class App:
     # __filename = Path(__file__).parent.parent / 'shoppingList.csv'
     # __delimiter = '\t'
     # __logged = False
     __key = None
+    __refreshKey = None
     __userID = None
     __role = None
+    __username = None
+    __console = None
     # __id_dictionary = []
 
     def __init__(self):
+        self.__console=Console()
         self.__first_menu = self.init_first_menu()
         self.id_user = None
         self.__choice_menu = self.__init_choice_menu()
@@ -48,6 +55,7 @@ class App:
         return Menu.Builder(MenuDescription('Dressy'),
                             auto_select=lambda: print('\nWelcome! Please select an option\n')) \
             .with_entry(Entry.create('1', 'Login', is_logged=lambda: self.__login())) \
+            .with_entry(Entry.create('2', 'Logout', on_selected=lambda: self.__logout(), is_exit=True)) \
             .with_entry(Entry.create('0', 'Exit', on_selected=lambda: print('Bye Bye!\n'), is_exit=True)) \
             .build()
 
@@ -102,6 +110,9 @@ class App:
     def run(self) -> None:
         try:
             self.__run()
+        except KeyboardInterrupt:
+            self.__console.print("\nBye!")
+            sys.exit()
         except Exception as e:
             print(e)
             print('Panic error!', file=sys.stderr)
@@ -109,8 +120,8 @@ class App:
     def __run(self) -> None:
         while not self.__first_menu.run() == (True, False):
             try:
-                self.__fetch_dressloan()
                 self.__fetch_dress()
+                self.__fetch_dressloan()
             except ValueError as e:
                 print(e)
             except RuntimeError:
@@ -133,32 +144,87 @@ class App:
     def __login(self) -> bool:
         done = False
         while not done:
-            username = "commesso1"
-            password = "Gift-Contort-Revert5"
-            # username = self.__read("Username ", Username)
-            # if username.value == '0':
-            #     return False
-            # password = self.__read("Password ", Password)
-            # if password.value == '0':
-            #     return False
+            try:
+                f = open("token.txt", "r")
+            except:
+                f = open("token.txt", "w")
+                f.close()
+                f = open("token.txt", "r")
+            files = f.read()
 
-            res = requests.post(url=f'{api_server}/login/', data={'username': username, 'password': password},
-                                verify=True)
+            if files and files != '' and len(files) > 0:
+                credentials = json.loads(files)
+                self.__key = credentials['access']
+                self.__refreshKey = credentials['refresh']
+                try:
+                    self.decode_token_role(self.__key)
+                    self.__console.print(f"\nHello, [bold cyan]{self.__username}[/bold cyan]")
+                    self.__console.print("[i](If you want insert new credentials, do logout or delete token.txt)[/i]\n")
+                    done = True
+                except jwt.ExpiredSignatureError as e:
+                    self.__console.print("\nToken [bold red]Expired[/bold red]\n")
 
-            if res.status_code != 200:
-                print('This user does not exist!\n')
+                    with self.__console.status("Token renew...") as status:
+                        self.__tokenRenew()
+                        self.decode_token_role(self.__key)
+                        self.__console.print("\nToken [bold green]renewed[/bold green]\n")
+                    
+                    self.__console.print(f"\nHello, [bold cyan]{self.__username}[/bold cyan]")
+                    self.__console.print("[i](If you want insert new credentials, do logout or delete token.txt)[/i]\n")
+                    done = True
+                except jwt.InvalidSignatureError as e:
+                    self.__console.print("[bold red]Token invalid![/bold red]")
+                    self.__console.print("Logout or delete token.txt and run again!\n")
+                    done = False
+
             else:
-                self.__key = res.json()['access']
-                print('Login succeed\n')
-                self.decode_token_role(self.__key)
-                done = True
+                username = self.__read("Username", Username)
+                if username.value == '0':
+                    return False
+                password = self.__read("Password", Password)
+                if password.value == '0':
+                    return False
+                with self.__console.status("Login...") as status:
+                    res = requests.post(url=f'{api_server}/login/', data={'username': username, 'password': password},
+                                        verify=True)
+
+                if res.status_code != 200:
+                    self.__console.print('[bold red]This user does not exist![/bold red]\n')
+                else:
+                    self.__key = res.json()['access']
+                    self.__refreshKey = res.json()['refresh']
+                    self.__console.print('Login [bold green]success[/bold green]\n')
+                    self.decode_token_role(self.__key)
+                    self.__console.print(f"\nHello, [bold cyan]{self.__username}[/bold cyan]")
+                    self.__console.print("[i](If you want insert new credentials, do logout or delete token.txt)[/i]\n")
+                    f = open("token.txt", "w")
+                    f.write(json.dumps(res.json()))
+                    f.close()
+                    done = True
+        return True
+
+    def __tokenRenew(self) -> None:
+        res = requests.post(url=f'{api_server}/token/refresh/', json={'refresh': self.__refreshKey},verify=True)
+        self.__key=res.json()['access']
+        f = open("token.txt", "w")
+        f.write(json.dumps({
+            "access": self.__key,
+            "refresh": self.__refreshKey
+        }))
+        f.close()
+    
+    def __logout(self) -> bool:
+        if os.path.exists("token.txt"):
+            os.remove("token.txt")
+        print("Logout!")
         return True
 
     def decode_token_role(self, key):
-        secret=secret_key()
+        secret = settings['SECRET_KEY']
         decoded = jwt.decode(key, secret, algorithms=['HS512'])
         self.__userID = decoded['user_id']
         self.__role = decoded['groups'][0]
+        self.__username = decoded['username']
 
 
     @staticmethod
@@ -176,10 +242,8 @@ class App:
                 print('Format not satisfied\n')
 
     def __fetch_dress(self) -> None:
-        self.__dressList.clear()
-
-        res = requests.get(url=f'{api_server}/dress/', verify=True, headers={'Authorization': f'Bearer {self.__key}'})
-
+        self.__dressList.clear()        
+        res = requests.get(url=f'{api_server}/dress/', verify=True, headers={'Authorization': f'Bearer {self.__key}'})    
         if res.status_code != 200:
             raise RuntimeError()
 
@@ -203,7 +267,6 @@ class App:
         self.__dressloanList.clear()
         res = requests.get(url=f'{api_server}/loan/',
                         headers={'Authorization': f'Bearer {self.__key}'}, verify=True)
-        
         if res.status_code != 200:
             raise RuntimeError()
 
