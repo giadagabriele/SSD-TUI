@@ -2,8 +2,10 @@ attrs==22.1.0
 certifi==2022.9.24
 cffi==1.15.1
 charset-normalizer==2.1.1
+commonmark==0.9.1
 cryptography==38.0.4
 dataclass-type-validator==0.1.2
+dataclasses==0.6
 decopatch==1.4.10
 exceptiongroup==1.0.4
 idna==3.4
@@ -12,10 +14,13 @@ makefun==1.15.0
 packaging==21.3
 pluggy==1.0.0
 pycparser==2.21
+Pygments==2.13.0
 PyJWT==2.6.0
 pyparsing==3.0.9
 pytest==7.2.0
+python-dotenv==0.21.0
 requests==2.28.1
+rich==12.6.0
 six==1.16.0
 tomli==2.0.1
 typeguard==2.13.3
