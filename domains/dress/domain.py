@@ -89,18 +89,6 @@ class Size:
     def create(num: str) -> 'Size':
         return Size(int(num))
 
-@typechecked
-@dataclass(frozen=True, order=True)
-class Date:
-    value: str
-
-    def __post_init__(self):
-        validate_dataclass(self)
-        validate('value', self.value, custom=pattern(REGEX_DATE))
-
-    def __str__(self):
-        return str(self.value)
-
 
 @typechecked
 @dataclass(frozen=True, order=True)

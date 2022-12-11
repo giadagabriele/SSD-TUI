@@ -306,7 +306,7 @@ class App:
                          item.color.value, item.size.value, item.description.value, item.deleted.value))
         print_sep()
 
-    def __read_dress(self) -> Tuple[DressID, Brand, Price, Material, Color, Size, Description, Deleted]:        #Date poi nell'add darà problemi?
+    def __read_dress(self) -> Tuple[DressID, Brand, Price, Material, Color, Size, Description, Deleted]:   
         dress_uuid = uuid.uuid4()
         dress_uuidStr = str(dress_uuid)
         dress_id = DressID(dress_uuidStr)      #numero tmp verrà sovrascritto con i dati aggiornati dal backend
