@@ -27,7 +27,7 @@ class DressID:
         validate_dataclass(self)
         validate('value', self.value, custom=pattern(REGEX_DRESS_ID))
 
-    def __int__(self):
+    def __str__(self):
         return self.value
 
     @staticmethod
@@ -86,8 +86,8 @@ class Size:
         return self.value
 
     @staticmethod
-    def create(num: str) -> 'Size':
-        return Size(int(num))
+    def create(num: int) -> 'Size':
+        return Size(num)
 
 
 @typechecked
