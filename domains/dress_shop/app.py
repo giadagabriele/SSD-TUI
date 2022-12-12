@@ -325,8 +325,15 @@ class App:
         price = self.__read('Price', Price.parse)
         material = self.__read('Material (WOOL or SILK or COTTON)', Material)
         color = self.__read('Color (BLACK or BLUE or WHITE or RED or PINK or GRAY)', Color)
-        size = self.__read('Size (from 38 to 60)', int)
-        real_size = Size(size)
+        correctSize = False
+        while correctSize == False:
+            try:
+                size = self.__read('Size (from 38 to 60)', int)
+                real_size = Size(size)
+                correctSize = True
+            except ValidationError:
+                print("Format not satisfied\n")
+                correctSize = False
         description = self.__read('Description', Description)
         deleted = Deleted(False)
         return dress_id, brand, price, material, color, real_size, description, deleted
