@@ -52,7 +52,6 @@ class App:
         exit()
 
     def init_first_menu(self) -> Menu:
-        # .with_entry(Entry.create('2', 'Logout', on_selected=lambda: self.__logout(), is_exit=True)) \
         return Menu.Builder(MenuDescription('Dressy'),
                             auto_select=lambda: print('\nWelcome! Please select an option\n')) \
             .with_entry(Entry.create('1', 'Login', is_logged=lambda: self.__login())) \
@@ -160,7 +159,7 @@ class App:
                 try:
                     self.decode_token_role(self.__key)
                     self.__console.print(f"\nHello, [bold cyan]{self.__username}[/bold cyan]")
-                    self.__console.print("[i](If you want insert new credentials, do logout or delete token.txt)[/i]\n")
+                    self.__console.print("[i](If you want insert new credentials do logout)[/i]\n")
                     done = True
                 except jwt.ExpiredSignatureError as e:
                     self.__console.print("\nToken [bold red]Expired[/bold red]\n")
@@ -171,11 +170,11 @@ class App:
                         self.__console.print("\nToken [bold green]renewed[/bold green]\n")
                     
                     self.__console.print(f"\nHello, [bold cyan]{self.__username}[/bold cyan]")
-                    self.__console.print("[i](If you want insert new credentials, do logout or delete token.txt)[/i]\n")
+                    self.__console.print("[i](If you want insert new credentials do logout)[/i]\n")
                     done = True
                 except jwt.InvalidSignatureError as e:
                     self.__console.print("[bold red]Token invalid![/bold red]")
-                    self.__console.print("Logout or delete token.txt and run again!\n")
+                    self.__console.print("Logout and run again!\n")
                     done = False
 
             else:
@@ -385,8 +384,6 @@ class App:
 
         oldDress = self.__dressList.item(index - 1)
 
-        self.__dressList.remove_dress_by_index(index - 1)
-
         res = requests.delete(url=f'{api_server}/dress/{oldDress.id.value}', verify=True, headers={'Authorization': f'Bearer {self.__key}'})
         #print(res)
 
@@ -464,8 +461,6 @@ class App:
 
         oldDressLoan = self.__dressloanList.item(index - 1)
 
-        self.__dressloanList.remove_dressloan_by_index(index - 1)
-
         res = requests.delete(url=f'{api_server}/loan/{oldDressLoan.uuid.value}', verify=True, headers={'Authorization': f'Bearer {self.__key}'})
 
         self.__fetch_dressloan()
@@ -485,6 +480,9 @@ class App:
             return
 
         edited_dressloan = self.__dressloanList.item(index - 1)
+
+        #print('\n\nThis loan is terminated you can\'t extend it!\n\n')
+    
         edited_end_date = self.__read('End Date (format yyyy-mm-dd)', EndDate)
         edited_dressloan.endDate = edited_end_date
         
@@ -501,5 +499,6 @@ class App:
         #print(res.json())
 
         self.__fetch_dressloan()
-
-        print('End date extended!\n')
+    
+        print('\n\nEnd date extended!\n\n')
+            

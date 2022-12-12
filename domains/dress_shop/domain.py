@@ -70,22 +70,6 @@ class DressLoanList:
             raise ValueError
         self.__items.append(dressLoan)
 
-    """def remove_dressloan_by_index(self, index: int) -> None:
-        validate('index', index, min_value=MIN_DRESSLOAN_LIST_LENGTH, max_value=self.length()-1)
-        del self.__items[index]"""
-    
-    """def pop_dress_by_index(self, index: int) -> None:
-        validate('index', index, min_value=MIN_DRESSLOAN_LIST_LENGTH, max_value=self.length()-1)
-        old_dress = self.__items[index]
-        del self.__items[index]
-        return old_dress"""
-
-    """Change price of dress in DressList[index]"""
-    """def change_total_price_by_index(self, index: int, price: Price):
-        old_item = self.pop_dress_by_index(index)
-        self.__items.insert(index,
-                            Dress(old_item.id, old_item.brand.value, price, old_item.material.value,
-                            old_item.color.value, old_item.size.value, old_item.description))"""
     def sort_by_total_price(self) -> None:
         self.__items.sort(key=lambda x: x.totalPrice)
 
@@ -121,24 +105,6 @@ class DressList:
                 return True
         return False
 
-    """def remove_dress_by_index(self, index: int) -> None:
-        # L'index non deve essere inferiore a 0 o superiore alla lunghezza attuale
-        validate('index', index, min_value=MIN_DRESS_LIST_LENGTH, max_value=self.length()-1)
-        del self.__items[index]"""
-    
-    """def pop_dress_by_index(self, index: int) -> None:
-        validate('index', index, min_value=MIN_DRESS_LIST_LENGTH, max_value=self.length()-1)
-        old_dress = self.__items[index]
-        del self.__items[index]
-        return old_dress"""
-
-    """Change price of dress in DressList[index]"""
-    """def change_price_by_index(self, index: int, price: Price):
-        # Controllo di index in remove_dress
-        old_item = self.pop_dress_by_index(index)
-        self.__items.insert(index,
-                            Dress(old_item.id, old_item.brand.value, price, old_item.material.value,
-                            old_item.color.value, old_item.size.value, old_item.description))"""
 
     def sort_by_price(self) -> None:
         self.__items.sort(key=lambda x: x.price)
