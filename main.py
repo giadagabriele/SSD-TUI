@@ -1,4 +1,3 @@
-from rich.console import Console
 
 from domains.dress_shop.app import *
 from settings import settings

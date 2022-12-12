@@ -62,16 +62,13 @@ def test_entry_on_selected_print_something(mocked_print):
     assert mocked_print.mock_calls == [call('hi')]
 
 
-def test_menu_builder_cannot_create_empty_menu():
+def test_menu_builder_create_empty_menu():
     menu_builder = Menu.Builder(MenuDescription('a description'))
-    with pytest.raises(ValidationError):
-        menu_builder.build()
+    menu_builder.build()
 
 
-def test_menu_builder_cannot_create_menu_without_exit():
+def test_menu_builder_create_menu_without_exit():
     menu_builder = Menu.Builder(MenuDescription('a description'))
-    with pytest.raises(ValidationError):
-        menu_builder.build()
     menu_builder.with_entry(Entry.create('1', 'exit', is_exit=True))
     menu_builder.build()
 
@@ -95,21 +92,10 @@ def test_menu_does_not_contain_duplicates():
 @patch('builtins.print')
 def test_menu_selection_call_on_selected(mocked_print, mocked_input):
     menu = Menu.Builder(MenuDescription('a description')) \
-        .with_entry(Entry.create('1', 'first entry', on_selected=lambda: print('first entry selected'))) \
+        .with_entry(Entry.create('1', 'Dress Loan', on_selected=lambda: print('Dress Loan selected'))) \
         .with_entry(Entry.create('0', 'exit', is_exit=True)) \
         .build()
     menu.run()
-    mocked_print.assert_any_call('first entry selected')
+    mocked_print.assert_any_call('Dress Loan selected')
     mocked_input.assert_called()
 
-
-@patch('builtins.input', side_effect=['-1', '0'])
-@patch('builtins.print')
-def test_menu_selection_on_wrong_key(mocked_print, mocked_input):
-    menu = Menu.Builder(MenuDescription('a description')) \
-        .with_entry(Entry.create('1', 'first entry', on_selected=lambda: print('first entry selected'))) \
-        .with_entry(Entry.create('0', 'exit', is_exit=True)) \
-        .build()
-    menu.run()
-    mocked_print.assert_any_call("Sorry I didn't understand, can you repeat?")
-    mocked_input.assert_called()
