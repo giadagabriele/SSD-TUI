@@ -47,12 +47,16 @@ class App:
         self.__dressloanList = DressLoanList()
         get_default_algorithms()
 
+    def exit_function(self):
+        print('Bye Bye!\n')
+        exit()
+
     def init_first_menu(self) -> Menu:
+        # .with_entry(Entry.create('2', 'Logout', on_selected=lambda: self.__logout(), is_exit=True)) \
         return Menu.Builder(MenuDescription('Dressy'),
                             auto_select=lambda: print('\nWelcome! Please select an option\n')) \
             .with_entry(Entry.create('1', 'Login', is_logged=lambda: self.__login())) \
-            .with_entry(Entry.create('2', 'Logout', on_selected=lambda: self.__logout(), is_exit=True)) \
-            .with_entry(Entry.create('0', 'Exit', on_selected=lambda: print('Bye Bye!\n'), is_exit=True)) \
+            .with_entry(Entry.create('0', 'Exit', on_selected=lambda: self.exit_function())) \
             .build()
 
     def __init_choice_menu(self) -> Menu:
@@ -60,7 +64,8 @@ class App:
                             auto_select=lambda: print('\nSelect the menu to display\n')) \
             .with_entry(Entry.create('1', 'Dress Loan', on_selected=lambda: self.__run_dressloan_menu())) \
             .with_entry(Entry.create('2', 'Dress', on_selected=lambda: self.__run_dress_menu())) \
-            .with_entry(Entry.create('0', 'Back to Login', on_selected=lambda: print('Logged out\n'), is_exit=True)) \
+            .with_entry(Entry.create('3', 'Logout', on_selected=lambda: self.__logout())) \
+            .with_entry(Entry.create('0', 'Exit', on_selected=lambda: self.exit_function())) \
             .build()
 
     def __init_dressloan_menu_commessi(self) -> Menu:
@@ -69,14 +74,14 @@ class App:
             .with_entry(Entry.create('1', 'Sort by total price', on_selected=lambda: self.__dressloanList.sort_by_total_price()))\
             .with_entry(Entry.create('2', 'Extend loan', on_selected=lambda: self.__edit_dressloan_end_date()))\
             .with_entry(Entry.create('3', 'Close loan', on_selected=lambda: self.__remove_dressloan()))\
-            .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
+            .with_entry(Entry.create('0', 'Back', is_exit=True)) \
             .build()
 
     def __init_dressloan_menu_user(self) -> Menu:
          return Menu.Builder(MenuDescription('Dressy - Dress Loan Menu'),
                             auto_select=lambda: self.__print_dressloans()) \
             .with_entry(Entry.create('1', 'Sort by total price', on_selected=lambda: self.__dressloanList.sort_by_total_price()))\
-            .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
+            .with_entry(Entry.create('0', 'Back', is_exit=True)) \
             .build()
 
     def __init_dress_menu_commessi(self) -> Menu:
@@ -87,7 +92,7 @@ class App:
             .with_entry(Entry.create('3', 'Edit dress price', on_selected=lambda: self.__edit_dress_price()))\
             .with_entry(Entry.create('4', 'Make dress unavailable', on_selected=lambda: self.__remove_dress()))\
             .with_entry(Entry.create('5', 'Reserve', on_selected=lambda: self.__add_dressloan()))\
-            .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
+            .with_entry(Entry.create('0', 'Back', is_exit=True)) \
             .build()
 
     def __init_dress_menu_user(self) -> Menu:
@@ -95,7 +100,7 @@ class App:
                             auto_select=lambda: self.__print_dresses()) \
             .with_entry(Entry.create('1', 'Sort by price', on_selected=lambda: self.__dressList.sort_by_price()))\
             .with_entry(Entry.create('2', 'Reserve', on_selected=lambda: self.__add_dressloan()))\
-            .with_entry(Entry.create('0', 'Back to Choice Menu', on_selected=lambda: print('Make a choice\n'), is_exit=True)) \
+            .with_entry(Entry.create('0', 'Back', is_exit=True)) \
             .build()
 
     def run(self) -> None:
@@ -108,17 +113,22 @@ class App:
             print(e)
             print('Panic error!', file=sys.stderr)
 
+    def fetch_methods(self) -> None:
+        try:
+            self.__fetch_dress()
+            self.__fetch_dressloan()
+        except ValueError as e:
+            print(e)
+        except RuntimeError:
+            print('Failed to connect to the server! Try later!')
+            return
+
     def __run(self) -> None:
-        while not self.__first_menu.run() == (True, False):
-            try:
-                self.__fetch_dress()
-                self.__fetch_dressloan()
-            except ValueError as e:
-                print(e)
-            except RuntimeError:
-                print('Failed to connect to the server! Try later!')
-                return
-            self.__choice_menu.run()
+        if not self.__login():
+            while not self.__first_menu.run() == (True, False):
+                pass
+        self.fetch_methods()
+        self.__choice_menu.run()
 
     def __run_dressloan_menu(self) -> None:
         if self.__role =='commessi':
@@ -207,8 +217,10 @@ class App:
     def __logout(self) -> bool:
         if os.path.exists("token.txt"):
             os.remove("token.txt")
-        print("Logout!")
-        return True
+            print("Logout!")
+            self.init_first_menu().run()
+            return True
+        return False
 
     def decode_token_role(self, key):
         secret = settings['SECRET_KEY']
