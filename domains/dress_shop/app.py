@@ -114,8 +114,8 @@ class App:
 
     def fetch_methods(self) -> None:
         try:
-            self.__fetch_dress()
-            self.__fetch_dressloan()
+            self.fetch_dress()
+            self.fetch_dressloan()
         except ValueError as e:
             print(e)
         except RuntimeError:
@@ -189,13 +189,13 @@ class App:
                                         verify=True)
 
                 if res.status_code != 200:
-                    self.__console.print('[bold red]This user does not exist![/bold red]\n')
+                    print('This user does not exist!\n')
                 else:
                     self.__key = res.json()['access']
                     self.__refreshKey = res.json()['refresh']
                     self.__console.print('Login [bold green]success[/bold green]\n')
                     self.decode_token_role(self.__key)
-                    self.__console.print(f"\nHello, [bold cyan]{self.__username}[/bold cyan]")
+                    print(f"\nHello, {self.__username}")
                     self.__console.print("[i](If you want insert new credentials, do logout or delete token.txt)[/i]\n")
                     f = open("token.txt", "w")
                     f.write(json.dumps(res.json()))
@@ -243,7 +243,7 @@ class App:
             except (TypeError, ValueError, ValidationError) as e:
                 print('Format not satisfied\n')
 
-    def __fetch_dress(self) -> None:    
+    def fetch_dress(self) -> None:    
         self.__dressList.clear() 
         res = requests.get(url=f'{api_server}/dress/', verify=True, headers={'Authorization': f'Bearer {self.__key}'})    
         if res.status_code != 200:
@@ -265,7 +265,7 @@ class App:
             dress = Dress(uuid, brand, price, material, color, size, description, deleted)
             self.__dressList.add(dress)
 
-    def __fetch_dressloan(self) -> None:
+    def fetch_dressloan(self) -> None:
         self.__dressloanList.clear()
         res = requests.get(url=f'{api_server}/loan/',
                         headers={'Authorization': f'Bearer {self.__key}'}, verify=True)
@@ -366,7 +366,7 @@ class App:
 
         res = requests.post(url=f'{api_server}/dress/', json=newDressJSON, verify=True, headers={'Authorization': f'Bearer {self.__key}'})
 
-        self.__fetch_dress()
+        self.fetch_dress()
 
         print('Dress added!\n')
 
@@ -387,7 +387,7 @@ class App:
         res = requests.delete(url=f'{api_server}/dress/{oldDress.id.value}', verify=True, headers={'Authorization': f'Bearer {self.__key}'})
         #print(res)
 
-        self.__fetch_dress()
+        self.fetch_dress()
 
         print('Dress marked as unavailable!\n')
     
@@ -420,7 +420,7 @@ class App:
         res = requests.put(url=f'{api_server}/dress/{edited_dress.id.value}', json=newEditedDressJSON, verify=True, headers={'Authorization': f'Bearer {self.__key}'})
         #print(res.json())
 
-        self.__fetch_dress()
+        self.fetch_dress()
 
         print('Dress price edited!\n')
         
@@ -445,7 +445,7 @@ class App:
         }
         res = requests.post(url=f'{api_server}/loan/', json=newDressLoanJSON, verify=True, headers={'Authorization': f'Bearer {self.__key}'})
         #print(res)
-        self.__fetch_dressloan()
+        self.fetch_dressloan()
         
         print('Reserved!\n')
 
@@ -463,7 +463,7 @@ class App:
 
         res = requests.delete(url=f'{api_server}/loan/{oldDressLoan.uuid.value}', verify=True, headers={'Authorization': f'Bearer {self.__key}'})
 
-        self.__fetch_dressloan()
+        self.fetch_dressloan()
 
         print('Dress Loan marked as terminated!\n')
 
@@ -498,7 +498,7 @@ class App:
         res = requests.put(url=f'{api_server}/loan/{edited_dressloan.uuid.value}', json=newEditedDressLoanJSON, verify=True, headers={'Authorization': f'Bearer {self.__key}'})
         #print(res.json())
 
-        self.__fetch_dressloan()
+        self.fetch_dressloan()
     
         print('\n\nEnd date extended!\n\n')
             
