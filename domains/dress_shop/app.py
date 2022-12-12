@@ -264,7 +264,7 @@ class App:
             description = Description(str(item['description']))
             deleted = Deleted(bool(item['deleted']))
             dress = Dress(uuid, brand, price, material, color, size, description, deleted)
-            self.__dressList.add_dress(dress)
+            self.__dressList.add(dress)
 
     def __fetch_dressloan(self) -> None:
         self.__dressloanList.clear()
@@ -288,7 +288,7 @@ class App:
             insertBy = UserID(int(item['insertBy']))
             terminated = Terminated(bool(item['terminated']))
             dressloan = DressLoan(uuidDressLoan, startDate, endDate, dressID, loaner, totalPrice, loanDurationDays, insertBy, terminated)
-            self.__dressloanList.add_dressloan(dressloan)
+            self.__dressloanList.add(dressloan)
 
     def __print_dressloans(self) -> None:
         if self.__dressloanList.length() == 0:

@@ -77,6 +77,7 @@ class DurationDays:
 
     def __post_init__(self):
         validate_dataclass(self)
+        validate_type(self.value, int)
         validate('value', self.value, min_value=MIN_DURATION_DAYS, max_value=MAX_DURATION_DAYS)
 
     def __str__(self):
