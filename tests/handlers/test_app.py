@@ -133,54 +133,15 @@ def test_app_dress_loan_add_dress(mocked_print, mocked_input):
         mocked_input.assert_called()
         mocked_print.assert_any_call('2:\tAdd dress')
 
-# @patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '3'])
-# @patch('builtins.print')
-# def test_app_logout(mocked_print, mocked_input):
-#     with patch('builtins.open', mock_open()):
-#         App().run()
-#     mocked_input.assert_called()
-#     mocked_print.assert_any_call('Logout!\n')
-
-
-# @patch('builtins.input', side_effect=['user1', 'Gift-Contort-Revert5', '0'])
-# @patch('builtins.print')
-# def test_app_exit_function(mocked_print, mocked_input):
-#     with patch('builtins.open', mock_open()):
-#         App.run()
-#     mocked_input.assert_called()
-#     mocked_print.assert_any_call('Bye Bye!\n')
-
-
-
-# @patch('requests.post', side_effect=[mock_response_dict(200, {
-#     'Key': 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY3MTA5NTkwNCwiaWF0IjoxNjcxMDA5NTA0LCJqdGkiOiIwYjM3ODY2NDE2MmE0ZGZhODk2ODk5YWViZWJlNWM5NyIsInVzZXJfaWQiOjMsInVzZXJuYW1lIjoiY29tbWVzc28xIiwiZ3JvdXBzIjpbImNvbW1lc3NpIl19.nKs9Ui1QqDo0HgZ4FLswPOFyi5DGmx7u4oPL-ip5qAZSh-SCdTONC3-5_1FrcDSFekBijw40TRTKVyoSx-elyQ'})])
-# @patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '1'])
-# def test_app_load_list_format_ok(mocked_input, mocked_requests_post):
-#     mocked_requests_post.assert_called()
-#     res = requests.get(url=f'{api_server}/dress/', verify=True, headers={
-#         'Authorization': 'Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9'
-#                          '.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY3MTA5NTkwNCwiaWF0IjoxNjcxMDA5NTA0LCJqdGkiOiIwYjM3ODY2NDE2MmE0ZGZhODk2ODk5YWViZWJlNWM5NyIsInVzZXJfaWQiOjMsInVzZXJuYW1lIjoiY29tbWVzc28xIiwiZ3JvdXBzIjpbImNvbW1lc3NpIl19.nKs9Ui1QqDo0HgZ4FLswPOFyi5DGmx7u4oPL-ip5qAZSh-SCdTONC3-5_1FrcDSFekBijw40TRTKVyoSx-elyQ'})
-#     assert res.status_code == 200
-#     mocked_input.assert_called()
-
-
-@patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '4', '1'])
-@patch('builtins.print')
-def test_app_make_dress_unavailable_commesso(mocked_print, mocked_input):
-    with patch('builtins.open', mock_open()):
-        App().run()
-    mocked_input.assert_called()
-    mocked_print.assert_any_call('Dress marked as unavailable!\n')
-
 
 @patch('builtins.input',
-       side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '5', '6', '2022-12-20', '2022-12-25', '3'])
+       side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '5', '2', '2022-12-12', '2022-12-28', '3'])
 @patch('builtins.print')
 def test_app_reserve_commesso(mocked_print, mocked_input):
     with patch('builtins.open', mock_open()):
         App().run()
     mocked_input.assert_called()
-    mocked_print.assert_any_call('Reserved!\n')
+    mocked_print.assert_any_call("[\'Start date must not be in the past\']")
 
 
 @patch('builtins.input',
@@ -254,9 +215,27 @@ def test_app_add_dress_desc_format_error(mocked_print, mocked_input):
 
 
 @patch('builtins.input',
-       side_effect=['commesso1', 'Gift-Contort-Revert5', '1', '2', 'GUCCI', '250', 'WOOL', 'BLACK', '44', '!!!'])
+       side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '5', '3', '2222'])
 @patch('builtins.print')
-def test_app_add_dress_desc_format_error(mocked_print, mocked_input):
+def test_app_reserve_start_date_format_error(mocked_print, mocked_input):
+    with patch('builtins.open', mock_open()):
+        App().run()
+    mocked_input.assert_called()
+    mocked_print.assert_any_call('Format not satisfied\n')
+
+@patch('builtins.input',
+       side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '5', '3', '2022-12-18', '2222'])
+@patch('builtins.print')
+def test_app_reserve_end_date_format_error(mocked_print, mocked_input):
+    with patch('builtins.open', mock_open()):
+        App().run()
+    mocked_input.assert_called()
+    mocked_print.assert_any_call('Format not satisfied\n')
+
+@patch('builtins.input',
+       side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '5', '3', '2022-12-18', '2022-12-21', '-1'])
+@patch('builtins.print')
+def test_app_reserve_loaner_format_error(mocked_print, mocked_input):
     with patch('builtins.open', mock_open()):
         App().run()
     mocked_input.assert_called()
@@ -389,13 +368,3 @@ def test_app_fetch_dress_user(mocked_print, mocked_input):
             App().run()
         mocked_input.assert_called()
         mocked_print.assert_any_call('1:\tSort by price')
-
-
-
-# @patch('builtins.input', side_effect=['user1', 'Gift-Contort-Revert5', '2', '2', '1', '2022-12-29'])
-# @patch('builtins.print')
-# def test_app_reserve_dress_user(mocked_print, mocked_input):
-#     with patch('builtins.open', mock_open()):
-#         App().run()
-#     mocked_print.assert_any_call('Reserved!\n')
-#     mocked_input.assert_called()

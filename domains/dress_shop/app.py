@@ -346,7 +346,6 @@ class App:
         deleted = Deleted(False)
         return dress_id, brand, price, material, color, real_size, description, deleted
 
-        # loaner                     #insertBy
 
     def read_dressloan(self) -> Tuple[
         DressLoanID, StartDate, EndDate, DressID, UserID, Price, DurationDays, UserID, Terminated]:
@@ -358,9 +357,23 @@ class App:
         dress_uuid = uuid.uuid4()
         dress_uuidStr = str(dress_uuid)
         dress_id = DressID(dress_uuidStr)  # numero tmp verrà sovrascritto tramite indice di dress
-        loaner_id = self.read('Loaner (if you are a user PRESS ENTER)', str)
-        if loaner_id == "":
-            loaner_id = self.__userID
+        correctLoaner = False
+        while correctLoaner == False:
+            try:
+                loaner_id = self.read('Loaner (if you are a user PRESS ENTER)', str)
+                if loaner_id == "":
+                    loaner_id = self.__userID
+                if int(loaner_id) < 1 :
+                    raise ValidationError(
+                        ("Format not satisfied\n"),
+                        var_value=loaner_id,
+                        var_name="loaner_id",
+                        failure=ValidationFailure(loaner_id)
+                    )
+                correctLoaner = True
+            except ValidationError:
+                print("Format not satisfied\n")
+                correctLoaner = False
         real_loaner_id = UserID(int(loaner_id))
         total_price = Price(125)  # numero tmp verrà sovrascritto con i dati aggiornati dal backend
         duration_days = DurationDays(2)  # numero tmp verrà sovrascritto con i dati aggiornati dal backend
@@ -384,9 +397,14 @@ class App:
         res = requests.post(url=f'{api_server}/dress/', json=newDressJSON, verify=True,
                             headers={'Authorization': f'Bearer {self.__key}'})
 
-        self.fetch_dress()
+        if res.status_code == 201:
+            self.fetch_dress()
+            print('Dress added!\n')
+            input("PRESS ENTER TO CONTINUE")
 
-        print('Dress added!\n')
+        else:
+            print(res.json()[list(res.json().keys())[0]])
+            input("PRESS ENTER TO CONTINUE")
 
     def remove_dress(self) -> None:
         def builder(value: str) -> int:
@@ -402,11 +420,14 @@ class App:
 
         res = requests.delete(url=f'{api_server}/dress/{oldDress.id.value}', verify=True,
                               headers={'Authorization': f'Bearer {self.__key}'})
-        # print(res)
-
-        self.fetch_dress()
-
-        print('Dress marked as unavailable!\n')
+        
+        if res.status_code == 204:
+            self.fetch_dress()
+            print('Dress marked as unavailable!\n')
+            input("PRESS ENTER TO CONTINUE")
+        else:
+            print(res.json()[list(res.json().keys())[0]])
+            input("PRESS ENTER TO CONTINUE")
 
     def edit_dress_price(self) -> None:
         def builder(value: str) -> int:
@@ -434,11 +455,15 @@ class App:
 
         res = requests.put(url=f'{api_server}/dress/{edited_dress.id.value}', json=newEditedDressJSON, verify=True,
                            headers={'Authorization': f'Bearer {self.__key}'})
-        # print(res.json())
+        
+        if res.status_code == 200:
+            self.fetch_dress()
+            print('Dress price edited!\n')
+            input("PRESS ENTER TO CONTINUE")
+        else:
+            print(res.json()[list(res.json().keys())[0]])
+            input("PRESS ENTER TO CONTINUE")
 
-        self.fetch_dress()
-
-        print('Dress price edited!\n')
 
     def add_dressloan(self) -> None:
         def builder(value: str) -> int:
@@ -461,12 +486,14 @@ class App:
         }
         res = requests.post(url=f'{api_server}/loan/', json=newDressLoanJSON, verify=True,
                             headers={'Authorization': f'Bearer {self.__key}'})
-        # print(res)
-        self.fetch_dressloan()
-
-        print('Reserved!\n')
-
-        input("PRESS ENTER")
+    
+        if res.status_code == 201:
+            self.fetch_dressloan()
+            print('Reserved!\n')
+            input("PRESS ENTER")
+        else:
+            print(str(res.json()[list(res.json().keys())[0]]))
+            input("PRESS ENTER")
 
     def remove_dressloan(self) -> None:
         def builder(value: str) -> int:
@@ -483,9 +510,13 @@ class App:
         res = requests.delete(url=f'{api_server}/loan/{oldDressLoan.uuid.value}', verify=True,
                               headers={'Authorization': f'Bearer {self.__key}'})
 
-        self.fetch_dressloan()
-
-        print('Dress Loan marked as terminated!\n')
+        if res.status_code == 204:
+            self.fetch_dressloan()
+            print('Dress loan marked as deleted!\n')
+            input("PRESS ENTER TO CONTINUE")
+        else:
+            print(res.json()[list(res.json().keys())[0]])
+            input("PRESS ENTER TO CONTINUE")
 
     def edit_dressloan_end_date(self) -> None:
         def builder(value: str) -> int:
@@ -499,8 +530,6 @@ class App:
 
         edited_dressloan = self.__dressloanList.item(index - 1)
 
-        # print('\n\nThis loan is terminated you can\'t extend it!\n\n')
-
         edited_end_date = self.read('End Date (format yyyy-mm-dd)', EndDate)
         edited_dressloan.endDate = edited_end_date
 
@@ -513,8 +542,12 @@ class App:
 
         res = requests.put(url=f'{api_server}/loan/{edited_dressloan.uuid.value}', json=newEditedDressLoanJSON,
                            verify=True, headers={'Authorization': f'Bearer {self.__key}'})
-        # print(res.json())
 
-        self.fetch_dressloan()
+        if res.status_code == 200:
+            self.fetch_dressloan()
+            print('Dress loan edited!\n')
+            input("PRESS ENTER TO CONTINUE")
 
-        print('\n\nEnd date extended!\n\n')
+        else:
+            print(res.json()[list(res.json().keys())[0]])
+            input("PRESS ENTER TO CONTINUE")
