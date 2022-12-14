@@ -50,6 +50,9 @@ class App:
 
     def exit_function(self):
         print('Bye Bye!\n')
+        self.exit_from_app()
+
+    def exit_from_app(self):
         exit()
 
     def init_first_menu(self) -> Menu:
