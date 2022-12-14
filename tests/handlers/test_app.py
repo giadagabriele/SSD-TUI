@@ -45,7 +45,7 @@ def test_app_sign_in_resists_wrong_format_username(mocked_print, mocked_input):
 
 @patch('builtins.input', side_effect=['commesso1', 'pass'])
 @patch('builtins.print')
-def test_app_sign_in_resists_wrong_format_password(mocked_print, mocked_input):
+def test_app_sign_in_commesso_wrong_format_password(mocked_print, mocked_input):
     with patch('builtins.open', mock_open()):
         App().run()
     mocked_print.assert_any_call('Format not satisfied\n')
@@ -54,7 +54,7 @@ def test_app_sign_in_resists_wrong_format_password(mocked_print, mocked_input):
 
 @patch('builtins.input', side_effect=['commesso1', '234234234'])
 @patch('builtins.print')
-def test_app_sign_in_resists_wrong_password(mocked_print, mocked_input):
+def test_app_sign_in_commesso_wrong_password(mocked_print, mocked_input):
     with patch('builtins.open', mock_open()):
         App().run()
     mocked_input.assert_called()
@@ -63,7 +63,7 @@ def test_app_sign_in_resists_wrong_password(mocked_print, mocked_input):
 
 @patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5'])
 @patch('builtins.print')
-def test_app_sign_in_resists_right_password_for_commessi(mocked_print, mocked_input):
+def test_app_sign_in_commesso_right_password(mocked_print, mocked_input):
     with patch('builtins.open', mock_open()):
         App().run()
     mocked_input.assert_called()
@@ -72,13 +72,55 @@ def test_app_sign_in_resists_right_password_for_commessi(mocked_print, mocked_in
 
 @patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '1'])
 @patch('builtins.print')
-def test_app_dress_loan(mocked_print, mocked_input):
+def test_app_dress_loan_commesso(mocked_print, mocked_input):
     with patch.object(App, 'fetch_dress') as mocked_fetch_dress:
         mocked_fetch_dress.return_value = True
         with patch('builtins.open', mock_open()):
             App().run()
         mocked_input.assert_called()
         mocked_print.assert_any_call('1:\tSort by total price')
+        mocked_print.assert_any_call('2:\tExtend loan')
+        mocked_print.assert_any_call('3:\tClose loan')
+        mocked_print.assert_any_call('0:\tBack')
+
+
+@patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '2'])
+@patch('builtins.print')
+def test_app_dress_commesso(mocked_print, mocked_input):
+    with patch.object(App, 'fetch_dress') as mocked_fetch_dress:
+        mocked_fetch_dress.return_value = True
+        with patch('builtins.open', mock_open()):
+            App().run()
+        mocked_input.assert_called()
+        mocked_print.assert_any_call('1:\tSort by price')
+        mocked_print.assert_any_call('2:\tAdd dress')
+        mocked_print.assert_any_call('3:\tEdit dress price')
+        mocked_print.assert_any_call('4:\tMake dress unavailable')
+        mocked_print.assert_any_call('5:\tReserve')
+        mocked_print.assert_any_call('0:\tBack')
+
+
+@patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '1'])
+@patch('builtins.print')
+def test_app_fetch_dressloan_commesso(mocked_print, mocked_input):
+    with patch.object(App, 'fetch_dressloan') as mocked_fetch_dressloan:
+        mocked_fetch_dressloan.return_value = True
+        with patch('builtins.open', mock_open()):
+            App().run()
+        mocked_input.assert_called()
+        mocked_print.assert_any_call('1:\tSort by total price')
+
+
+
+@patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '2'])
+@patch('builtins.print')
+def test_app_fetch_dress_commesso(mocked_print, mocked_input):
+    with patch.object(App, 'fetch_dress') as mocked_fetch_dress:
+        mocked_fetch_dress.return_value = True
+        with patch('builtins.open', mock_open()):
+            App().run()
+        mocked_input.assert_called()
+        mocked_print.assert_any_call('1:\tSort by price')
 
 
 # @patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '3'])
@@ -99,51 +141,6 @@ def test_app_dress_loan(mocked_print, mocked_input):
 #     mocked_print.assert_any_call('Bye Bye!\n')
 
 
-''' QUESTO PER ORA FUNZIONA MA IN REALTA' POTREBBE NON FUNZIONARE SE AGGIUNGO ALTRI LOAN, TECNICAMENTE SBAGLIATO '''
-
-#
-# @patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '1', '1'])
-# @patch('builtins.print')
-# def test_app_sort_by_total_price_dress_loan(mocked_print, mocked_input):
-#     with patch.object(App, 'fetch_dress') as mocked_fetch_dress:
-#         mocked_fetch_dress.return_value = True
-#         with patch('builtins.open', mock_open()):
-#             App().run()
-#         mocked_print.assert_any_call(
-#             '1          2022-12-30                      2022-12-31            0.20                 1                              3                    False     ')
-#         mocked_print.assert_any_call(
-#             '2          2022-12-30                      2022-12-31            1.0                  1                              2                    False     ')
-#         mocked_input.assert_called()
-#
-
-''' QUESTI 2 NON FUNZIONANO, L'ORDINE DOPO IL COMANDO NON E' SEMPRE UGUALE '''
-
-# @patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '1', '2', '6', '2023-01-11'])
-# @patch('builtins.print')
-# def test_app_extend_dress_loan_terminated_false(mocked_print, mocked_input):
-#     with patch.object(App, 'fetch_dress') as mocked_fetch_dress:
-#         mocked_fetch_dress.return_value = True
-#         with patch('builtins.open', mock_open()):
-#             App().run()
-#         mocked_print.assert_any_call('6          2022-12-28                      2023-01-11            6.88           '
-#                                      '      1                             2                    False     ')
-#         mocked_input.assert_called()
-
-
-# @patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '1', '2', '1', '2022-12-22'])
-# @patch('builtins.print')
-# def test_app_extend_dress_loan_terminated_true(mocked_print, mocked_input):
-#     with patch.object(App, 'fetch_dress') as mocked_fetch_dress:
-#         mocked_fetch_dress.return_value = True
-#         with patch('builtins.open', mock_open()):
-#             App().run()
-#         mocked_print.assert_any_call('1          2022-12-17                      2022-12-21            2.0            '
-#                                      '      4                              4                    True      ')
-#         mocked_input.assert_called()
-
-
-''' NON HO ANCORA TROVATO UNA SOLUZIONE'''
-
 
 # @patch('requests.post', side_effect=[mock_response_dict(200, {
 #     'Key': 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY3MTA5NTkwNCwiaWF0IjoxNjcxMDA5NTA0LCJqdGkiOiIwYjM3ODY2NDE2MmE0ZGZhODk2ODk5YWViZWJlNWM5NyIsInVzZXJfaWQiOjMsInVzZXJuYW1lIjoiY29tbWVzc28xIiwiZ3JvdXBzIjpbImNvbW1lc3NpIl19.nKs9Ui1QqDo0HgZ4FLswPOFyi5DGmx7u4oPL-ip5qAZSh-SCdTONC3-5_1FrcDSFekBijw40TRTKVyoSx-elyQ'})])
@@ -155,17 +152,6 @@ def test_app_dress_loan(mocked_print, mocked_input):
 #                          '.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY3MTA5NTkwNCwiaWF0IjoxNjcxMDA5NTA0LCJqdGkiOiIwYjM3ODY2NDE2MmE0ZGZhODk2ODk5YWViZWJlNWM5NyIsInVzZXJfaWQiOjMsInVzZXJuYW1lIjoiY29tbWVzc28xIiwiZ3JvdXBzIjpbImNvbW1lc3NpIl19.nKs9Ui1QqDo0HgZ4FLswPOFyi5DGmx7u4oPL-ip5qAZSh-SCdTONC3-5_1FrcDSFekBijw40TRTKVyoSx-elyQ'})
 #     assert res.status_code == 200
 #     mocked_input.assert_called()
-
-
-@patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '2'])
-@patch('builtins.print')
-def test_app_dress_loan_add_dress(mocked_print, mocked_input):
-    with patch.object(App, 'fetch_dress') as mocked_fetch_dress:
-        mocked_fetch_dress.return_value = True
-        with patch('builtins.open', mock_open()):
-            App().run()
-        mocked_input.assert_called()
-        mocked_print.assert_any_call('2:\tAdd dress')
 
 
 @patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '4', '1'])
@@ -267,9 +253,28 @@ def test_app_add_dress_desc_format_error(mocked_print, mocked_input):
     mocked_print.assert_any_call('Format not satisfied\n')
 
 
+
+@patch('builtins.input', side_effect=['user1', 'pass'])
+@patch('builtins.print')
+def test_app_sign_in_user_wrong_format_password(mocked_print, mocked_input):
+    with patch('builtins.open', mock_open()):
+        App().run()
+    mocked_print.assert_any_call('Format not satisfied\n')
+    mocked_input.assert_called()
+
+
+@patch('builtins.input', side_effect=['user1', '234234234'])
+@patch('builtins.print')
+def test_app_sign_in_user_wrong_password(mocked_print, mocked_input):
+    with patch('builtins.open', mock_open()):
+        App().run()
+    mocked_input.assert_called()
+    mocked_print.assert_any_call('This user does not exist!\n')
+
+
 @patch('builtins.input', side_effect=['user1', 'Gift-Contort-Revert5'])
 @patch('builtins.print')
-def test_app_sign_in_resists_right_password_for_user(mocked_print, mocked_input):
+def test_app_sign_in_user_right_password(mocked_print, mocked_input):
     with patch('builtins.open', mock_open()):
         App().run()
     mocked_input.assert_called()
@@ -278,27 +283,43 @@ def test_app_sign_in_resists_right_password_for_user(mocked_print, mocked_input)
 
 @patch('builtins.input', side_effect=['user1', 'Gift-Contort-Revert5', '1'])
 @patch('builtins.print')
-def test_app_fetch_loan(mocked_print, mocked_input):
-    with patch('builtins.open', mock_open()):
-        App().run()
-    mocked_input.assert_called()
-    mocked_print.assert_any_call('\nHello, user1')
-    mocked_print.assert_any_call('>>>>>>>>>>>> Dressy - Dress Loan Menu <<<<<<<<<<<<')
+def test_app_dress_loan_user(mocked_print, mocked_input):
+    with patch.object(App, 'fetch_dress') as mocked_fetch_dress:
+        mocked_fetch_dress.return_value = True
+        with patch('builtins.open', mock_open()):
+            App().run()
+        mocked_input.assert_called()
+        mocked_print.assert_any_call('1:\tSort by total price')
+        mocked_print.assert_any_call('0:\tBack')
+
+@patch('builtins.input', side_effect=['user1', 'Gift-Contort-Revert5', '2'])
+@patch('builtins.print')
+def test_app_dress_user(mocked_print, mocked_input):
+    with patch.object(App, 'fetch_dress') as mocked_fetch_dress:
+        mocked_fetch_dress.return_value = True
+        with patch('builtins.open', mock_open()):
+            App().run()
+        mocked_input.assert_called()
+        mocked_print.assert_any_call('1:\tSort by price')
+        mocked_print.assert_any_call('2:\tReserve')
+        mocked_print.assert_any_call('0:\tBack')
+
+
+@patch('builtins.input', side_effect=['user1', 'Gift-Contort-Revert5', '1'])
+@patch('builtins.print')
+def test_app_fetch_dressloan_user(mocked_print, mocked_input):
+    with patch.object(App, 'fetch_dress') as mocked_fetch_dress:
+        mocked_fetch_dress.return_value = True
+        with patch('builtins.open', mock_open()):
+            App().run()
+        mocked_input.assert_called()
+        mocked_print.assert_any_call('1:\tSort by total price')
+
 
 
 @patch('builtins.input', side_effect=['user1', 'Gift-Contort-Revert5', '2'])
 @patch('builtins.print')
-def test_app_fetch_dress(mocked_print, mocked_input):
-    with patch('builtins.open', mock_open()):
-        App().run()
-    mocked_input.assert_called()
-    mocked_print.assert_any_call('\nHello, user1')
-    mocked_print.assert_any_call('>>>>>>>>>>>> Dressy - Dress Menu <<<<<<<<<<<<')
-
-
-@patch('builtins.input', side_effect=['user1', 'Gift-Contort-Revert5', '2'])
-@patch('builtins.print')
-def test_app_fetch_dress(mocked_print, mocked_input):
+def test_app_fetch_dress_user(mocked_print, mocked_input):
     with patch.object(App, 'fetch_dress') as mocked_fetch_dress:
         mocked_fetch_dress.return_value = True
         with patch('builtins.open', mock_open()):
@@ -307,19 +328,11 @@ def test_app_fetch_dress(mocked_print, mocked_input):
         mocked_print.assert_any_call('1:\tSort by price')
 
 
-@patch('builtins.input', side_effect=['user1', 'Gift-Contort-Revert5', '1'])
-@patch('builtins.print')
-def test_app_fetch_dress_user(mocked_print, mocked_input):
-    with patch('builtins.open', mock_open()):
-        App().run()
-    mocked_print.assert_any_call('1:\tSort by total price')
-    mocked_input.assert_called()
 
-
-@patch('builtins.input', side_effect=['user1', 'Gift-Contort-Revert5', '2', '2', '1', '2022-12-29'])
-@patch('builtins.print')
-def test_app_reserve_dress_user(mocked_print, mocked_input):
-    with patch('builtins.open', mock_open()):
-        App().run()
-    mocked_print.assert_any_call('Reserved!\n')
-    mocked_input.assert_called()
+# @patch('builtins.input', side_effect=['user1', 'Gift-Contort-Revert5', '2', '2', '1', '2022-12-29'])
+# @patch('builtins.print')
+# def test_app_reserve_dress_user(mocked_print, mocked_input):
+#     with patch('builtins.open', mock_open()):
+#         App().run()
+#     mocked_print.assert_any_call('Reserved!\n')
+#     mocked_input.assert_called()
