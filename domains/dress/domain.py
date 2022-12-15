@@ -131,14 +131,17 @@ class Price:
 
     def __post_init__(self):
         validate_dataclass(self)
-        validate('value_in_cents', self.value_in_cents, min_value=self.__min_value, max_value=self.__max_value)
+        validate('value_in_cents', self.value_in_cents, min_value=self.__min_cent_value, max_value=self.__max_value)
 
     def __str__(self):
         return f'{self.value_in_cents // 100}.{self.value_in_cents % 100}'
 
+    def __int__(self):
+        return self.value_in_cents
+
     @staticmethod
     def create(euro: int, cents: int = 0) -> 'Price':
-        validate('euro', euro, min_value=Price.__min_value, max_value=Price.__max_value // 100)
+        validate('euro', euro, min_value=Price.__min_value, max_value=Price.__max_value)
         validate('cents', cents, min_value=Price.__min_cent_value, max_value=Price.__max_cent_value)
         return Price(euro * 100 + cents)
 
@@ -157,9 +160,6 @@ class Price:
     @property
     def euro(self) -> int:
         return self.value_in_cents // 100
-
-    """def add(self, other: 'Price') -> 'Price':
-        return Price(self.value_in_cents + other.value_in_cents, self.__create_key)"""
 
 
 @typechecked

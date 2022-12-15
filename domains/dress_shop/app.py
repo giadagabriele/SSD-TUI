@@ -330,7 +330,16 @@ class App:
         dress_uuidStr = str(dress_uuid)
         dress_id = DressID(dress_uuidStr)  # numero tmp verrà sovrascritto con i dati aggiornati dal backend
         brand = self.read('Brand (GUCCI or ARMANI or VALENTINO)', Brand)
-        price = self.read('Price', Price.parse)
+        correctPrice = False
+        while correctPrice == False:
+            try:
+                eur = self.read('Eur: ', int)
+                cents = self.read('Cents: ', int)
+                price = Price.create(eur, cents)
+                correctPrice = True
+            except ValidationError:
+                print("Format not satisfied\n")
+                correctPrice = False
         material = self.read('Material (WOOL or SILK or COTTON)', Material)
         color = self.read('Color (BLACK or BLUE or WHITE or RED or PINK or GRAY)', Color)
         correctSize = False
@@ -399,7 +408,7 @@ class App:
 
         if res.status_code == 201:
             self.fetch_dress()
-            print('Dress added!\n')
+            print('Dress added!')
             input("PRESS ENTER TO CONTINUE")
 
         else:
@@ -440,12 +449,21 @@ class App:
             return
 
         edited_dress = self.__dressList.item(index - 1)
-        edited_price = self.read('Price', Price.parse)
-        edited_dress.price = edited_price
+        correctPrice = False
+        edited_price = None
+        while correctPrice == False:
+            try:
+                eur = self.read('Eur: ', int)
+                cents = self.read('Cents: ', int)
+                edited_price = Price.create(eur, cents)
+                correctPrice = True
+            except ValidationError:
+                print("Format not satisfied\n")
+                correctPrice = False
 
         newEditedDressJSON = {
             "brandType": edited_dress.brand.value,
-            "priceInCents": edited_dress.price.value_in_cents,
+            "priceInCents": int(edited_price),
             "materialType": edited_dress.material.value,
             "colorType": edited_dress.color.value,
             "size": edited_dress.size.value,
@@ -455,9 +473,9 @@ class App:
 
         res = requests.put(url=f'{api_server}/dress/{edited_dress.id.value}', json=newEditedDressJSON, verify=True,
                            headers={'Authorization': f'Bearer {self.__key}'})
-        
+
+        self.fetch_dress()
         if res.status_code == 200:
-            self.fetch_dress()
             print('Dress price edited!\n')
             input("PRESS ENTER TO CONTINUE")
         else:
@@ -529,13 +547,11 @@ class App:
             return
 
         edited_dressloan = self.__dressloanList.item(index - 1)
-
         edited_end_date = self.read('End Date (format yyyy-mm-dd)', EndDate)
-        edited_dressloan.endDate = edited_end_date
 
         newEditedDressLoanJSON = {
             "startDate": edited_dressloan.startDate.value,
-            "endDate": edited_dressloan.endDate.value,
+            "endDate": str(edited_end_date),
             "dress": edited_dressloan.dressID.value,
             "loaner": edited_dressloan.loaner.value,
         }
@@ -543,15 +559,10 @@ class App:
         res = requests.put(url=f'{api_server}/loan/{edited_dressloan.uuid.value}', json=newEditedDressLoanJSON,
                            verify=True, headers={'Authorization': f'Bearer {self.__key}'})
 
-        print(res.status_code)
-        print(res.json())
+        self.fetch_dressloan()
         if res.status_code == 200:
-            #self.fetch_dressloan()
             print('Dress loan edited!\n')
             input("PRESS ENTER TO CONTINUE")
-
         else:
-            
-            #print(res.json()[list(res.json().keys())[0]])
+            print(res.json()[list(res.json().keys())[0]])
             input("PRESS ENTER TO CONTINUE")
-        self.fetch_dressloan()

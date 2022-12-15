@@ -144,18 +144,16 @@ def test_app_reserve_commesso(mocked_print, mocked_input):
     mocked_print.assert_any_call("[\'Start date must not be in the past\']")
 
 
-@patch('builtins.input',
-       side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '2', 'GUCCI', '250', 'WOOL', 'BLACK', '44', 'desc'])
+@patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '2', 'GUCCI', '250', '12', 'WOOL', 'BLACK', '44', 'desc'])
 @patch('builtins.print')
 def test_app_add_dress_commesso(mocked_print, mocked_input):
     with patch('builtins.open', mock_open()):
         App().run()
     mocked_input.assert_called()
-    mocked_print.assert_any_call('Dress added!\n')
+    mocked_print.assert_any_call('Dress added!')
 
 
-@patch('builtins.input',
-       side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '2', 'BLABLA'])
+@patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '2', 'BLABLA'])
 @patch('builtins.print')
 def test_app_add_dress_brand_format_error(mocked_print, mocked_input):
     with patch('builtins.open', mock_open()):
@@ -164,8 +162,7 @@ def test_app_add_dress_brand_format_error(mocked_print, mocked_input):
     mocked_print.assert_any_call('Format not satisfied\n')
 
 
-@patch('builtins.input',
-       side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '2', 'GUCCI', ' '])
+@patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '2', 'GUCCI', ' '])
 @patch('builtins.print')
 def test_app_add_dress_price_format_error(mocked_print, mocked_input):
     with patch('builtins.open', mock_open()):
@@ -370,7 +367,7 @@ def test_app_fetch_dress_user(mocked_print, mocked_input):
         mocked_print.assert_any_call('1:\tSort by price')
 
 
-@patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '3', '1','-1'])
+@patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '3', '4','-1', '0'])
 @patch('builtins.print')
 def test_app_edit_price_commesso_wrong_value(mocked_print, mocked_input):
     with patch('builtins.open', mock_open()):
@@ -434,24 +431,3 @@ def test_app_already_reserved_user(mocked_print, mocked_input):
         App().run()
     mocked_input.assert_called()
     mocked_print.assert_any_call('Dress already loan')
-
-@patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '1', '2', '1', '2222'])
-@patch('builtins.print')
-def test_extend_date_dress_loan_commesso(mocked_print, mocked_input):
-    with patch.object(App, 'fetch_dressloan') as mocked:
-        mocked.return_value = [{
-        "id": "e8c8e826-39a4-4a9c-9861-cfe0e48632be",
-        "startDate": "2022-12-31",
-        "endDate": "2023-01-03",
-        "dress": "018ce62f-0b09-4b0c-a414-d897600dac55",
-        "loaner": 2,
-        "totalPrice": 360,
-        "loanDurationDays": 4,
-        "insertBy": 2,
-        "terminated": "false"
-        }]
-        with patch('builtins.open', mock_open()):
-          App().run()
-        print(mocked.fetch_dressloan)
-        mocked_input.assert_called()
-        mocked_print.assert_any_call('Dress loan edited!\n')
