@@ -150,82 +150,29 @@ class App:
     def login(self) -> bool:
         done = False
         while not done:
-            try:
-                f = open("token.txt", "r")
-            except:
-                f = open("token.txt", "w")
-                f.close()
-                f = open("token.txt", "r")
-            files = f.read()
+            username = self.read("Username ", Username)
+            if username.value == '0':
+                return False
+            password = self.read("Password ", Password)
+            if password.value == '0':
+                return False
 
-            if files and files != '' and len(files) > 0:
-                credentials = json.loads(files)
-                self.__key = credentials['access']
-                self.__refreshKey = credentials['refresh']
-                try:
-                    self.decode_token_role(self.__key)
-                    self.__console.print(f"\nHello, [bold cyan]{self.__username}[/bold cyan]")
-                    self.__console.print("[i](If you want insert new credentials do logout)[/i]\n")
-                    done = True
-                except jwt.ExpiredSignatureError as e:
-                    self.__console.print("\nToken [bold red]Expired[/bold red]\n")
+            res = requests.post(url=f'{api_server}/login/', data={'username': username, 'password': password},
+                                verify=True)
 
-                    with self.__console.status("Token renew...") as status:
-                        self.tokenRenew()
-                        self.decode_token_role(self.__key)
-                        self.__console.print("\nToken [bold green]renewed[/bold green]\n")
-
-                    self.__console.print(f"\nHello, [bold cyan]{self.__username}[/bold cyan]")
-                    self.__console.print("[i](If you want insert new credentials do logout)[/i]\n")
-                    done = True
-                except jwt.InvalidSignatureError as e:
-                    self.__console.print("[bold red]Token invalid![/bold red]")
-                    self.__console.print("Logout and run again!\n")
-                    done = False
-
+            if res.status_code != 200:
+                print('This user does not exist!\n')
             else:
-                username = self.read("Username", Username)
-                if username.value == '0':
-                    return False
-                password = self.read("Password", Password)
-                if password.value == '0':
-                    return False
-                with self.__console.status("Login...") as status:
-                    res = requests.post(url=f'{api_server}/login/', data={'username': username, 'password': password},
-                                        verify=True)
-
-                if res.status_code != 200:
-                    print('This user does not exist!\n')
-                else:
-                    self.__key = res.json()['access']
-                    self.__refreshKey = res.json()['refresh']
-                    self.__console.print('Login [bold green]success[/bold green]\n')
-                    self.decode_token_role(self.__key)
-                    print(f"\nHello, {self.__username}")
-                    self.__console.print("[i](If you want insert new credentials, do logout or delete token.txt)[/i]\n")
-                    f = open("token.txt", "w")
-                    f.write(json.dumps(res.json()))
-                    f.close()
-                    done = True
+                self.__key = res.json()['access']
+                print('Login succeed\n')
+                self.decode_token_role(self.__key)
+                done = True
         return True
 
-    def tokenRenew(self) -> None:
-        res = requests.post(url=f'{api_server}/token/refresh/', json={'refresh': self.__refreshKey}, verify=True)
-        self.__key = res.json()['access']
-        f = open("token.txt", "w")
-        f.write(json.dumps({
-            "access": self.__key,
-            "refresh": self.__refreshKey
-        }))
-        f.close()
-
     def logout(self) -> bool:
-        if os.path.exists("token.txt"):
-            os.remove("token.txt")
-            print("Logout!")
-            self.init_first_menu().run()
-            return True
-        return False
+        print("Logout!")
+        self.init_first_menu().run()
+        return True
 
     def decode_token_role(self, key):
         secret = settings['SECRET_KEY']
@@ -238,11 +185,7 @@ class App:
     def read(prompt: str, builder: Callable) -> Any:
         while True:
             try:
-                if prompt != 'Password':
-                    line = input(f'{prompt}: ')
-                else:
-                    line = input(f'{prompt}: ')
-
+                line = input(f'{prompt}: ')
                 res = builder(line.strip())
                 return res
             except (TypeError, ValueError, ValidationError) as e:
@@ -429,7 +372,7 @@ class App:
 
         res = requests.delete(url=f'{api_server}/dress/{oldDress.id.value}', verify=True,
                               headers={'Authorization': f'Bearer {self.__key}'})
-        
+
         if res.status_code == 204:
             self.fetch_dress()
             print('Dress marked as unavailable!\n')
