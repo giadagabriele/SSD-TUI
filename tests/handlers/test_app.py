@@ -421,8 +421,37 @@ def test_app_reserve_commesso_wrong_value_index(mocked_print, mocked_input):
 
 @patch('builtins.input', side_effect=['user1', 'Gift-Contort-Revert5', '2', '2', '-1'])
 @patch('builtins.print')
-def test_app_reserve_commesso_wrong_value_index(mocked_print, mocked_input):
+def test_app_reserve_user_wrong_value_index(mocked_print, mocked_input):
     with patch('builtins.open', mock_open()):
         App().run()
     mocked_input.assert_called()
     mocked_print.assert_any_call('Format not satisfied\n')
+
+@patch('builtins.input', side_effect=['user1', 'Gift-Contort-Revert5', '2', '2', '4', '2026-12-28', '2026-12-30', ''])
+@patch('builtins.print')
+def test_app_already_reserved_user(mocked_print, mocked_input):
+    with patch('builtins.open', mock_open()):
+        App().run()
+    mocked_input.assert_called()
+    mocked_print.assert_any_call('Dress already loan')
+
+@patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '1', '2', '1', '2222'])
+@patch('builtins.print')
+def test_extend_date_dress_loan_commesso(mocked_print, mocked_input):
+    with patch.object(App, 'fetch_dressloan') as mocked:
+        mocked.return_value = [{
+        "id": "e8c8e826-39a4-4a9c-9861-cfe0e48632be",
+        "startDate": "2022-12-31",
+        "endDate": "2023-01-03",
+        "dress": "018ce62f-0b09-4b0c-a414-d897600dac55",
+        "loaner": 2,
+        "totalPrice": 360,
+        "loanDurationDays": 4,
+        "insertBy": 2,
+        "terminated": "false"
+        }]
+        with patch('builtins.open', mock_open()):
+          App().run()
+        print(mocked.fetch_dressloan)
+        mocked_input.assert_called()
+        mocked_print.assert_any_call('Dress loan edited!\n')

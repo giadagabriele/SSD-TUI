@@ -543,11 +543,15 @@ class App:
         res = requests.put(url=f'{api_server}/loan/{edited_dressloan.uuid.value}', json=newEditedDressLoanJSON,
                            verify=True, headers={'Authorization': f'Bearer {self.__key}'})
 
+        print(res.status_code)
+        print(res.json())
         if res.status_code == 200:
-            self.fetch_dressloan()
+            #self.fetch_dressloan()
             print('Dress loan edited!\n')
             input("PRESS ENTER TO CONTINUE")
 
         else:
-            print(res.json()[list(res.json().keys())[0]])
+            
+            #print(res.json()[list(res.json().keys())[0]])
             input("PRESS ENTER TO CONTINUE")
+        self.fetch_dressloan()
