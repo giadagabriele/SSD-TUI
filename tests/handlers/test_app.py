@@ -134,13 +134,13 @@ def test_app_dress_loan_add_dress(mocked_print, mocked_input):
 
 
 @patch('builtins.input',
-       side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '5', '2', '2022-12-12', '2022-12-28', '3'])
+       side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '5', '1', '2022-12-12', '2022-12-28', '3'])
 @patch('builtins.print')
 def test_app_reserve_commesso(mocked_print, mocked_input):
     with patch('builtins.open', mock_open()):
         App().run()
     mocked_input.assert_called()
-    mocked_print.assert_any_call("[\'Start date must not be in the past\']")
+    mocked_print.assert_any_call("Start date must not be in the past")
 
 
 @patch('builtins.input',
