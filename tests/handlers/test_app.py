@@ -397,6 +397,15 @@ def test_app_remove_dress_loan_canceled(mocked_print, mocked_input):
     mocked_print.assert_any_call('Cancelled!\n')
 
 
+@patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '1', '3', '0'])
+@patch('builtins.print')
+def test_app_close_dress_loan_canceled(mocked_print, mocked_input):
+    with patch('builtins.open', mock_open()):
+        App().run()
+    mocked_input.assert_called()
+    mocked_print.assert_any_call('Cancelled!\n')
+
+
 # @patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '2', '4', '27'])
 # @patch('builtins.print')
 # def test_app_remove_dress_loan(mocked_print, mocked_input):
@@ -413,6 +422,15 @@ def test_app_edit_end_date_commesso_wrong_value(mocked_print, mocked_input):
         App().run()
     mocked_input.assert_called()
     mocked_print.assert_any_call('Format not satisfied\n')
+
+
+@patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '1', '2', '0'])
+@patch('builtins.print')
+def test_app_edit_end_date_commesso_cancelled(mocked_print, mocked_input):
+    with patch('builtins.open', mock_open()):
+        App().run()
+    mocked_input.assert_called()
+    mocked_print.assert_any_call('Cancelled!\n')
 
 
 @patch('builtins.input', side_effect=['commesso1', 'Gift-Contort-Revert5', '1', '2', '-1'])

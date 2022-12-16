@@ -99,3 +99,14 @@ def test_menu_selection_call_on_selected(mocked_print, mocked_input):
     mocked_print.assert_any_call('Dress Loan selected')
     mocked_input.assert_called()
 
+
+@patch('builtins.input', side_effect=['-1', '0'])
+@patch('builtins.print')
+def test_menu_selection_on_wrong_key(mocked_print, mocked_input):
+    menu = Menu.Builder(MenuDescription('a description')) \
+        .with_entry(Entry.create('1', 'Dress Loan', on_selected=lambda: print('Dress Loan selected'))) \
+        .with_entry(Entry.create('0', 'exit', is_exit=True)) \
+        .build()
+    menu.run()
+    mocked_print.assert_any_call('Sorry I didn\'t understand, can you repeat?')
+    mocked_input.assert_called()

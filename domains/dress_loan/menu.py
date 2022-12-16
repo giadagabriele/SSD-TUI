@@ -93,7 +93,7 @@ class Menu:
                 entry.on_selected()
                 return entry.is_exit, entry.is_logged()
             except (KeyError, TypeError, ValueError) as e:
-                print("Sorry I didn't understand, can you repeat?", e)
+                print("Sorry I didn't understand, can you repeat?")
 
     def run(self) -> Tuple[bool, bool]:
         while True:
