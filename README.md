@@ -1,5 +1,5 @@
 # SSD-TUI
-***Secure Software Design Group Project - Università della Calabria***
+***Secure Software Design group project - Università della Calabria***
 
 Dress loan service. Two models, dress and loan, two levels of access, to allow more control over who-does-what.
 
